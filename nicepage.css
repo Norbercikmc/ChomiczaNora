@@ -44042,31 +44042,23 @@ a.u-link.u-text-hover-grey-90:hover {
 .u-header .u-nav-2 {
   font-size: 1.25rem;
 }
-@media (max-width: 1199px) {
-  .u-header .u-logo-image-1 {
-    max-width: 64px;
-    max-height: 64px;
+
+
+
+@media (max-width: 575px) {
+  .u-header .u-sheet-1 {
+    min-height: 136px;
+  }
+
+  .u-header .u-image-1 {
+    width: 136px;
+    height: 136px;
   }
 
   .u-header .u-menu-1 {
-    width: auto;
-  }
-
-  .u-header .u-nav-1 {
-    --animation-custom_in-translate_x: -200px;
-    --animation-custom_in-translate_y: 0px;
-    --animation-custom_in-opacity: 0;
-    --animation-custom_in-rotate: 0deg;
-    --animation-custom_in-scale: 1;
+    margin-top: -91px;
   }
 }
-
-@media (max-width: 767px) {
-  .u-header .u-image-1 {
-    width: auto;
-  }
-}
-
 .u-header .u-image-1, .u-header .u-image-1:before, .u-header .u-image-1 > .u-container-layout:before {
     transition-property: fill, color, background-color, stroke-width, border-style, border-width, border-top-width, border-left-width, border-right-width, border-bottom-width, custom-border, borders, box-shadow, text-shadow, opacity, border-radius, stroke, border-color, font-size, font-style, font-weight, text-decoration, letter-spacing, transform, background-image, image-zoom, background-size, background-position
 }
