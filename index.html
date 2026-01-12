@@ -14,17 +14,61 @@
 <link rel="stylesheet" href="index.css" media="screen">
     <script class="u-script" type="text/javascript" src="jquery.js" defer=""></script>
     <script class="u-script" type="text/javascript" src="nicepage.js" defer=""></script>
-    <link id="u-theme-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i|Open+Sans:300,300i,400,400i,500,500i,600,600i,700,700i,800,800i">
-    
-    
-    
+    <link id="u-theme-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap">
+    <style>
+      * {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+      h1, h2, h3 {
+        font-family: 'Poppins', sans-serif;
+      }
+      .modern-btn {
+        display: inline-block;
+        padding: 15px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin: 8px;
+      }
+      .modern-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+      }
+      .modern-card {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+      }
+      .modern-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero-gradient {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      }
+    </style>
     <script type="application/ld+json">{
 		"@context": "http://schema.org",
 		"@type": "Organization",
 		"name": "Chomicza Nora",
 		"logo": "images/Logo.png"
 }</script>
-    <meta name="theme-color" content="#34421e">
+    <meta name="theme-color" content="#667eea">
     <meta property="og:type" content="website">
   <meta data-intl-tel-input-cdn-path="intlTelInput/"></head>
   <body data-home-page="Chomicza-Nora.html" data-home-page-title="Chomicza Nora" data-path-to-root="./" data-include-products="false" class="u-body u-xl-mode" data-lang="pl"><header class="u-clearfix u-header u-palette-5-light-3 u-header" id="sec-3582"><div class="u-clearfix u-sheet u-sheet-1">
@@ -60,17 +104,17 @@
         <li data-u-target="#carousel-7dc4" class="u-active u-shape-circle" style="width: 10px; height: 10px; background-image: none;" data-u-slide-to="0"></li>
       </ol>
       <div class="u-carousel-inner" role="listbox">
-        <div class="u-active u-align-center u-carousel-item u-clearfix u-image u-section-1-1" data-image-width="1280" data-image-height="853">
-          <div class="u-clearfix u-sheet u-sheet-1">
-            <h1 class="u-hover-feature u-text u-text-1">Chomicza Nora</h1>
-            <h2 class="u-text u-text-2" style="font-size: 1.5rem; margin-top: 20px;">Projekt Maszynownia</h2>
-            <p class="u-text u-text-3" style="font-size: 1.2rem; margin-top: 20px; max-width: 800px; margin-left: auto; margin-right: auto;">
+        <div class="u-active u-align-center u-carousel-item u-clearfix u-image u-section-1-1 hero-gradient" data-image-width="1280" data-image-height="853">
+          <div class="u-clearfix u-sheet u-sheet-1" style="padding: 80px 20px;">
+            <h1 class="u-hover-feature u-text u-text-1" style="font-size: 3.5rem; font-weight: 800; letter-spacing: -1px;">Chomicza Nora</h1>
+            <h2 class="u-text u-text-2 gradient-text" style="font-size: 2rem; margin-top: 20px; font-weight: 700;">Projekt Maszynownia</h2>
+            <p class="u-text u-text-3" style="font-size: 1.25rem; margin-top: 25px; max-width: 850px; margin-left: auto; margin-right: auto; line-height: 1.8; opacity: 0.9;">
               HomeLAB self-hostingu wykorzystujący stare i nowe PC do uruchamiania usług: Discord, Minecraft, Teamspeak i więcej! 
               Pełna kontrola nad infrastrukturą, bezpieczeństwem i wydajnością.
             </p>
-            <div class="u-section-btn" style="margin-top: 30px;">
-              <a class="btn btn-primary" href="https://discord.com/invite/ChTAqW8yDv" target="_blank" style="margin: 10px; padding: 15px 30px; background: #5865F2; color: white; text-decoration: none; border-radius: 5px;">Dołącz na Discord</a>
-              <a class="btn btn-success" href="https://ko-fi.com/chomiczanora" target="_blank" style="margin: 10px; padding: 15px 30px; background: #13C3A4; color: white; text-decoration: none; border-radius: 5px;">Wspieraj na Ko-fi</a>
+            <div class="u-section-btn" style="margin-top: 40px;">
+              <a class="modern-btn" href="https://discord.com/invite/ChTAqW8yDv" target="_blank" style="background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%); color: white;">💬 Dołącz na Discord</a>
+              <a class="modern-btn" href="https://ko-fi.com/chomiczanora" target="_blank" style="background: linear-gradient(135deg, #13C3A4 0%, #0FA888 100%); color: white;">☕ Wspieraj na Ko-fi</a>
             </div>
           </div>
         </div>
@@ -93,33 +137,37 @@
     </section>
     
     <!-- O Projekcie Section -->
-    <section class="u-align-center u-clearfix u-palette-5-light-2 u-section-2" id="about">
-      <div class="u-clearfix u-sheet u-sheet-1" style="padding: 60px 20px;">
-        <h2 class="u-text u-text-default u-text-1" style="font-size: 2.5rem; margin-bottom: 30px;">O Projekcie Maszynownia</h2>
+    <section class="u-align-center u-clearfix u-palette-5-light-2 u-section-2" id="about" style="background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);">
+      <div class="u-clearfix u-sheet u-sheet-1" style="padding: 80px 20px;">
+        <h2 class="u-text u-text-default u-text-1" style="font-size: 3rem; margin-bottom: 15px; font-weight: 700;">O Projekcie Maszynownia</h2>
+        <p style="font-size: 1.2rem; color: #666; margin-bottom: 50px;">🚀 Infrastruktura HomeLAB tworzona z pasją</p>
         <div class="u-expanded-width u-list u-list-1">
           <div class="u-repeater u-repeater-1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto;">
-            <div class="u-container-style u-list-item u-repeater-item" style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div class="u-container-style u-list-item u-repeater-item modern-card">
               <div class="u-container-layout u-similar-container u-container-layout-1">
-                <h3 class="u-text u-text-2" style="font-size: 1.8rem; margin-bottom: 15px;">🖥️ HomeLAB Infrastructure</h3>
-                <p class="u-text u-text-3" style="font-size: 1rem; line-height: 1.6;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🖥️</div>
+                <h3 class="u-text u-text-2" style="font-size: 1.8rem; margin-bottom: 15px; font-weight: 600;">HomeLAB Infrastructure</h3>
+                <p class="u-text u-text-3" style="font-size: 1.05rem; line-height: 1.7; color: #555;">
                   Wykorzystujemy stare i nowe zestawy PC (Intel i5-11400F, Xeon E5-2690). 
                   Łatwa konfiguracja nowych urządzeń i zdalne zarządzanie całą infrastrukturą.
                 </p>
               </div>
             </div>
-            <div class="u-container-style u-list-item u-repeater-item" style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div class="u-container-style u-list-item u-repeater-item modern-card">
               <div class="u-container-layout u-similar-container u-container-layout-2">
-                <h3 class="u-text u-text-4" style="font-size: 1.8rem; margin-bottom: 15px;">📊 Monitoring & Kontrola</h3>
-                <p class="u-text u-text-5" style="font-size: 1rem; line-height: 1.6;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">📊</div>
+                <h3 class="u-text u-text-4" style="font-size: 1.8rem; margin-bottom: 15px; font-weight: 600;">Monitoring & Kontrola</h3>
+                <p class="u-text u-text-5" style="font-size: 1.05rem; line-height: 1.7; color: #555;">
                   Monitorowanie zasobów, alerty o stanach komponentów i pełna kontrola nad wszystkimi usługami.
                   Planowany stack: Grafana, Prometheus i automatyczne backupy.
                 </p>
               </div>
             </div>
-            <div class="u-container-style u-list-item u-repeater-item" style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div class="u-container-style u-list-item u-repeater-item modern-card">
               <div class="u-container-layout u-similar-container u-container-layout-3">
-                <h3 class="u-text u-text-6" style="font-size: 1.8rem; margin-bottom: 15px;">🔓 Open-Source First</h3>
-                <p class="u-text u-text-7" style="font-size: 1rem; line-height: 1.6;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🔓</div>
+                <h3 class="u-text u-text-6" style="font-size: 1.8rem; margin-bottom: 15px; font-weight: 600;">Open-Source First</h3>
+                <p class="u-text u-text-7" style="font-size: 1.05rem; line-height: 1.7; color: #555;">
                   Wszystkie usługi hostujemy na własnych maszynach z wykorzystaniem open-source'owych rozwiązań. 
                   Pełna kontrola nad danymi, prywatnością i bezpieczeństwem.
                 </p>
@@ -131,16 +179,16 @@
     </section>
 
     <!-- Usługi Section -->
-    <section class="u-align-center u-clearfix u-palette-5-light-3 u-section-3" id="services">
-      <div class="u-clearfix u-sheet u-sheet-1" style="padding: 60px 20px;">
-        <h2 class="u-text u-text-default u-text-1" style="font-size: 2.5rem; margin-bottom: 20px;">Nasze Usługi</h2>
-        <p class="u-text u-text-2" style="font-size: 1.2rem; margin-bottom: 40px; max-width: 800px; margin-left: auto; margin-right: auto;">
-          Sprawdź wszystkie dostępne usługi i serwery, które oferujemy dla społeczności
+    <section class="u-align-center u-clearfix u-palette-5-light-3 u-section-3" id="services" style="background: #ffffff;">
+      <div class="u-clearfix u-sheet u-sheet-1" style="padding: 80px 20px;">
+        <h2 class="u-text u-text-default u-text-1" style="font-size: 3rem; margin-bottom: 15px; font-weight: 700;">Nasze Usługi</h2>
+        <p class="u-text u-text-2" style="font-size: 1.25rem; margin-bottom: 50px; max-width: 800px; margin-left: auto; margin-right: auto; color: #666;">
+          ⚡ Sprawdź wszystkie dostępne usługi i serwery dla społeczności
         </p>
         <div class="u-expanded-width u-list u-list-1">
           <div class="u-repeater u-repeater-1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto;">
             
-            <div class="u-container-style u-list-item u-repeater-item" style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #5865F2;">
+            <div class="u-container-style u-list-item u-repeater-item modern-card" style="border-left: 4px solid #5865F2; background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);">
               <div class="u-container-layout u-similar-container u-container-layout-1">
                 <h3 class="u-text u-text-3" style="font-size: 1.5rem; margin-bottom: 10px;">Discord Server</h3>
                 <p class="u-text u-text-4" style="font-size: 0.95rem; margin-bottom: 15px; color: #666;">
@@ -150,7 +198,7 @@
               </div>
             </div>
 
-            <div class="u-container-style u-list-item u-repeater-item" style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #62A87C;">
+            <div class="u-container-style u-list-item u-repeater-item modern-card" style="border-left: 4px solid #62A87C; background: linear-gradient(135deg, #ffffff 0%, #f8fff8 100%);">
               <div class="u-container-layout u-similar-container u-container-layout-2">
                 <h3 class="u-text u-text-5" style="font-size: 1.5rem; margin-bottom: 10px;">Minecraft Server</h3>
                 <p class="u-text u-text-6" style="font-size: 0.95rem; margin-bottom: 15px; color: #666;">
@@ -160,7 +208,7 @@
               </div>
             </div>
 
-            <div class="u-container-style u-list-item u-repeater-item" style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #FF9500;">
+            <div class="u-container-style u-list-item u-repeater-item modern-card" style="border-left: 4px solid #FF9500; background: linear-gradient(135deg, #ffffff 0%, #fff8f0 100%);">
               <div class="u-container-layout u-similar-container u-container-layout-3">
                 <h3 class="u-text u-text-7" style="font-size: 1.5rem; margin-bottom: 10px;">Teamspeak Server</h3>
                 <p class="u-text u-text-8" style="font-size: 0.95rem; margin-bottom: 15px; color: #666;">
@@ -170,7 +218,7 @@
               </div>
             </div>
 
-            <div class="u-container-style u-list-item u-repeater-item" style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #13C3A4;">
+            <div class="u-container-style u-list-item u-repeater-item modern-card" style="border-left: 4px solid #13C3A4; background: linear-gradient(135deg, #ffffff 0%, #f0fffc 100%);">
               <div class="u-container-layout u-similar-container u-container-layout-4">
                 <h3 class="u-text u-text-9" style="font-size: 1.5rem; margin-bottom: 10px;">Wsparcie Ko-fi</h3>
                 <p class="u-text u-text-10" style="font-size: 0.95rem; margin-bottom: 15px; color: #666;">
@@ -186,18 +234,18 @@
     </section>
     
     <!-- Sponsorzy Section -->
-    <section class="u-align-center u-clearfix u-palette-5-light-2 u-section-4" id="support">
-      <div class="u-clearfix u-sheet u-sheet-1" style="padding: 60px 20px;">
-        <h2 class="u-text u-text-default u-text-1" style="font-size: 2.5rem; margin-bottom: 20px;">Zostań Sponsorem</h2>
-        <div style="max-width: 800px; margin: 0 auto; text-align: left; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-          <h3 style="font-size: 1.8rem; margin-bottom: 20px;">Dlaczego warto nas wesprzeć?</h3>
-          <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 20px;">
+    <section class="u-align-center u-clearfix u-palette-5-light-2 u-section-4" id="support" style="background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);">
+      <div class="u-clearfix u-sheet u-sheet-1" style="padding: 80px 20px;">
+        <h2 class="u-text u-text-default u-text-1" style="font-size: 3rem; margin-bottom: 20px; font-weight: 700;">💖 Zostań Sponsorem</h2>
+        <div class="modern-card" style="max-width: 850px; margin: 0 auto; text-align: left;">
+          <h3 style="font-size: 2rem; margin-bottom: 20px; font-weight: 600;">Dlaczego warto nas wesprzeć?</h3>
+          <p style="font-size: 1.15rem; line-height: 1.8; margin-bottom: 25px; color: #555;">
             Twoje wsparcie pomaga nam utrzymywać serwery, dodawać nowe funkcje i rozwijać społeczność. 
             Każda donacja jest inwestycją w lepsze doświadczenie dla wszystkich graczy.
           </p>
           
-          <h3 style="font-size: 1.8rem; margin-bottom: 20px; margin-top: 30px;">Co otrzymujesz jako Sponsor?</h3>
-          <ul style="font-size: 1.1rem; line-height: 2; margin-bottom: 30px; list-style: none; padding-left: 0;">
+          <h3 style="font-size: 2rem; margin-bottom: 25px; margin-top: 40px; font-weight: 600;">Co otrzymujesz jako Sponsor?</h3>
+          <ul style="font-size: 1.15rem; line-height: 2.2; margin-bottom: 40px; list-style: none; padding-left: 0;">
             <li>✅ <strong>Rangę Sponsor</strong> widoczną w TAB i na czacie serwera</li>
             <li>✅ <strong>Kolorowe wiadomości</strong> na czacie (bez koloru czerwonego)</li>
             <li>✅ <strong>Dodatki kosmetyczne</strong> nie ingerujące w ekonomię</li>
@@ -205,10 +253,10 @@
             <li>✅ <strong>Ekskluzywne kanały</strong> na Discord dla sponsorów</li>
           </ul>
           
-          <div style="text-align: center;">
-            <a href="https://ko-fi.com/chomiczanora" target="_blank" 
-               style="display: inline-block; padding: 15px 40px; background: #13C3A4; color: white; text-decoration: none; border-radius: 5px; font-size: 1.2rem; font-weight: bold;">
-              Wsparcie na Ko-fi
+          <div style="text-align: center; margin-top: 40px;">
+            <a href="https://ko-fi.com/chomiczanora" target="_blank" class="modern-btn"
+               style="background: linear-gradient(135deg, #13C3A4 0%, #0FA888 100%); color: white; font-size: 1.25rem; padding: 18px 45px;">
+              ☕ Wspieraj na Ko-fi
             </a>
           </div>
         </div>
