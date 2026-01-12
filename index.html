@@ -14,52 +14,55 @@
 <link rel="stylesheet" href="index.css" media="screen">
     <script class="u-script" type="text/javascript" src="jquery.js" defer=""></script>
     <script class="u-script" type="text/javascript" src="nicepage.js" defer=""></script>
-    <link id="u-theme-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap">
+    <link id="u-theme-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <style>
       * {
         scroll-behavior: smooth;
       }
       body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #fafbfc;
       }
       h1, h2, h3 {
-        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        color: #1a1a1a;
       }
       .modern-btn {
         display: inline-block;
-        padding: 15px 32px;
-        font-size: 16px;
+        padding: 14px 28px;
+        font-size: 15px;
         font-weight: 600;
         text-decoration: none;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        transition: all 0.2s ease;
         margin: 8px;
       }
       .modern-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       }
       .modern-card {
         background: white;
-        padding: 30px;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        padding: 32px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
-        border: 1px solid rgba(0,0,0,0.05);
+        border: 1px solid #e8e8e8;
       }
       .modern-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
       }
-      .gradient-text {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: #1a1a1a;
       }
-      .hero-gradient {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      .section-subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 48px;
       }
     </style>
     <script type="application/ld+json">{
@@ -68,7 +71,7 @@
 		"name": "Chomicza Nora",
 		"logo": "images/Logo.png"
 }</script>
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#5865F2">
     <meta property="og:type" content="website">
   <meta data-intl-tel-input-cdn-path="intlTelInput/"></head>
   <body data-home-page="Chomicza-Nora.html" data-home-page-title="Chomicza Nora" data-path-to-root="./" data-include-products="false" class="u-body u-xl-mode" data-lang="pl"><header class="u-clearfix u-header u-palette-5-light-3 u-header" id="sec-3582"><div class="u-clearfix u-sheet u-sheet-1">
@@ -104,17 +107,16 @@
         <li data-u-target="#carousel-7dc4" class="u-active u-shape-circle" style="width: 10px; height: 10px; background-image: none;" data-u-slide-to="0"></li>
       </ol>
       <div class="u-carousel-inner" role="listbox">
-        <div class="u-active u-align-center u-carousel-item u-clearfix u-image u-section-1-1 hero-gradient" data-image-width="1280" data-image-height="853">
-          <div class="u-clearfix u-sheet u-sheet-1" style="padding: 80px 20px;">
-            <h1 class="u-hover-feature u-text u-text-1" style="font-size: 3.5rem; font-weight: 800; letter-spacing: -1px;">Chomicza Nora</h1>
-            <h2 class="u-text u-text-2 gradient-text" style="font-size: 2rem; margin-top: 20px; font-weight: 700;">Projekt Maszynownia</h2>
-            <p class="u-text u-text-3" style="font-size: 1.25rem; margin-top: 25px; max-width: 850px; margin-left: auto; margin-right: auto; line-height: 1.8; opacity: 0.9;">
-              HomeLAB self-hostingu wykorzystujący stare i nowe PC do uruchamiania usług: Discord, Minecraft, Teamspeak i więcej! 
-              Pełna kontrola nad infrastrukturą, bezpieczeństwem i wydajnością.
+        <div class="u-active u-align-center u-carousel-item u-clearfix u-image u-section-1-1" data-image-width="1280" data-image-height="853">
+          <div class="u-clearfix u-sheet u-sheet-1" style="padding: 100px 20px;">
+            <h1 class="u-hover-feature u-text u-text-1" style="font-size: 3.2rem; font-weight: 800; margin-bottom: 16px; text-shadow: 2px 2px 8px rgba(0,0,0,0.3);">Chomicza Nora</h1>
+            <h2 class="u-text u-text-2" style="font-size: 1.8rem; margin-top: 8px; font-weight: 600; text-shadow: 1px 1px 4px rgba(0,0,0,0.2);">Projekt Maszynownia</h2>
+            <p class="u-text u-text-3" style="font-size: 1.15rem; margin-top: 24px; max-width: 720px; margin-left: auto; margin-right: auto; line-height: 1.7; text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">
+              HomeLAB self-hostingu wykorzystujący PC do uruchamiania usług: Discord, Minecraft, Teamspeak i więcej!
             </p>
             <div class="u-section-btn" style="margin-top: 40px;">
-              <a class="modern-btn" href="https://discord.com/invite/ChTAqW8yDv" target="_blank" style="background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%); color: white;">💬 Dołącz na Discord</a>
-              <a class="modern-btn" href="https://ko-fi.com/chomiczanora" target="_blank" style="background: linear-gradient(135deg, #13C3A4 0%, #0FA888 100%); color: white;">☕ Wspieraj na Ko-fi</a>
+              <a class="modern-btn" href="https://discord.com/invite/ChTAqW8yDv" target="_blank" style="background: #5865F2; color: white;">💬 Discord</a>
+              <a class="modern-btn" href="https://ko-fi.com/chomiczanora" target="_blank" style="background: #13C3A4; color: white;">☕ Ko-fi</a>
             </div>
           </div>
         </div>
@@ -137,39 +139,36 @@
     </section>
     
     <!-- O Projekcie Section -->
-    <section class="u-align-center u-clearfix u-palette-5-light-2 u-section-2" id="about" style="background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);">
+    <section class="u-align-center u-clearfix u-palette-5-light-2 u-section-2" id="about" style="background: #ffffff;">
       <div class="u-clearfix u-sheet u-sheet-1" style="padding: 80px 20px;">
-        <h2 class="u-text u-text-default u-text-1" style="font-size: 3rem; margin-bottom: 15px; font-weight: 700;">O Projekcie Maszynownia</h2>
-        <p style="font-size: 1.2rem; color: #666; margin-bottom: 50px;">🚀 Infrastruktura HomeLAB tworzona z pasją</p>
+        <h2 class="section-title">O Projekcie Maszynownia</h2>
+        <p class="section-subtitle">Infrastruktura HomeLAB tworzona z pasją</p>
         <div class="u-expanded-width u-list u-list-1">
           <div class="u-repeater u-repeater-1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto;">
-            <div class="u-container-style u-list-item u-repeater-item modern-card">
+            <div class="modern-card">
               <div class="u-container-layout u-similar-container u-container-layout-1">
-                <div style="font-size: 3rem; margin-bottom: 15px;">🖥️</div>
-                <h3 class="u-text u-text-2" style="font-size: 1.8rem; margin-bottom: 15px; font-weight: 600;">HomeLAB Infrastructure</h3>
-                <p class="u-text u-text-3" style="font-size: 1.05rem; line-height: 1.7; color: #555;">
-                  Wykorzystujemy stare i nowe zestawy PC (Intel i5-11400F, Xeon E5-2690). 
-                  Łatwa konfiguracja nowych urządzeń i zdalne zarządzanie całą infrastrukturą.
+                <div style="font-size: 2.5rem; margin-bottom: 16px;">🖥️</div>
+                <h3 class="u-text u-text-2" style="font-size: 1.5rem; margin-bottom: 12px; font-weight: 600;">HomeLAB Infrastructure</h3>
+                <p class="u-text u-text-3" style="font-size: 1rem; line-height: 1.6; color: #666;">
+                  Wykorzystujemy PC (Intel i5-11400F, Xeon E5-2690) i Cloud VPS. Łatwa konfiguracja i zdalne zarządzanie.
                 </p>
               </div>
             </div>
-            <div class="u-container-style u-list-item u-repeater-item modern-card">
+            <div class="modern-card">
               <div class="u-container-layout u-similar-container u-container-layout-2">
-                <div style="font-size: 3rem; margin-bottom: 15px;">📊</div>
-                <h3 class="u-text u-text-4" style="font-size: 1.8rem; margin-bottom: 15px; font-weight: 600;">Monitoring & Kontrola</h3>
-                <p class="u-text u-text-5" style="font-size: 1.05rem; line-height: 1.7; color: #555;">
-                  Monitorowanie zasobów, alerty o stanach komponentów i pełna kontrola nad wszystkimi usługami.
-                  Planowany stack: Grafana, Prometheus i automatyczne backupy.
+                <div style="font-size: 2.5rem; margin-bottom: 16px;">📊</div>
+                <h3 class="u-text u-text-4" style="font-size: 1.5rem; margin-bottom: 12px; font-weight: 600;">Monitoring & Kontrola</h3>
+                <p class="u-text u-text-5" style="font-size: 1rem; line-height: 1.6; color: #666;">
+                  Monitorowanie zasobów i pełna kontrola. Planowany stack: Grafana, Prometheus.
                 </p>
               </div>
             </div>
-            <div class="u-container-style u-list-item u-repeater-item modern-card">
+            <div class="modern-card">
               <div class="u-container-layout u-similar-container u-container-layout-3">
-                <div style="font-size: 3rem; margin-bottom: 15px;">🔓</div>
-                <h3 class="u-text u-text-6" style="font-size: 1.8rem; margin-bottom: 15px; font-weight: 600;">Open-Source First</h3>
-                <p class="u-text u-text-7" style="font-size: 1.05rem; line-height: 1.7; color: #555;">
-                  Wszystkie usługi hostujemy na własnych maszynach z wykorzystaniem open-source'owych rozwiązań. 
-                  Pełna kontrola nad danymi, prywatnością i bezpieczeństwem.
+                <div style="font-size: 2.5rem; margin-bottom: 16px;">🔓</div>
+                <h3 class="u-text u-text-6" style="font-size: 1.5rem; margin-bottom: 12px; font-weight: 600;">Open-Source First</h3>
+                <p class="u-text u-text-7" style="font-size: 1rem; line-height: 1.6; color: #666;">
+                  Wszystko na własnych maszynach z open-source. Pełna kontrola nad danymi i bezpieczeństwem.
                 </p>
               </div>
             </div>
@@ -179,16 +178,14 @@
     </section>
 
     <!-- Usługi Section -->
-    <section class="u-align-center u-clearfix u-palette-5-light-3 u-section-3" id="services" style="background: #ffffff;">
+    <section class="u-align-center u-clearfix u-palette-5-light-3 u-section-3" id="services" style="background: #fafbfc;">
       <div class="u-clearfix u-sheet u-sheet-1" style="padding: 80px 20px;">
-        <h2 class="u-text u-text-default u-text-1" style="font-size: 3rem; margin-bottom: 15px; font-weight: 700;">Nasze Usługi</h2>
-        <p class="u-text u-text-2" style="font-size: 1.25rem; margin-bottom: 50px; max-width: 800px; margin-left: auto; margin-right: auto; color: #666;">
-          ⚡ Sprawdź wszystkie dostępne usługi i serwery dla społeczności
-        </p>
+        <h2 class="section-title">Nasze Usługi</h2>
+        <p class="section-subtitle">Sprawdź dostępne serwisy</p>
         <div class="u-expanded-width u-list u-list-1">
           <div class="u-repeater u-repeater-1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto;">
             
-            <div class="u-container-style u-list-item u-repeater-item modern-card" style="border-left: 4px solid #5865F2; background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);">
+            <div class="modern-card" style="border-left: 3px solid #5865F2;">
               <div class="u-container-layout u-similar-container u-container-layout-1">
                 <h3 class="u-text u-text-3" style="font-size: 1.5rem; margin-bottom: 10px;">Discord Server</h3>
                 <p class="u-text u-text-4" style="font-size: 0.95rem; margin-bottom: 15px; color: #666;">
@@ -198,7 +195,7 @@
               </div>
             </div>
 
-            <div class="u-container-style u-list-item u-repeater-item modern-card" style="border-left: 4px solid #62A87C; background: linear-gradient(135deg, #ffffff 0%, #f8fff8 100%);">
+            <div class="modern-card" style="border-left: 3px solid #62A87C;">
               <div class="u-container-layout u-similar-container u-container-layout-2">
                 <h3 class="u-text u-text-5" style="font-size: 1.5rem; margin-bottom: 10px;">Minecraft Server</h3>
                 <p class="u-text u-text-6" style="font-size: 0.95rem; margin-bottom: 15px; color: #666;">
@@ -234,18 +231,17 @@
     </section>
     
     <!-- Sponsorzy Section -->
-    <section class="u-align-center u-clearfix u-palette-5-light-2 u-section-4" id="support" style="background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);">
+    <section class="u-align-center u-clearfix u-palette-5-light-2 u-section-4" id="support" style="background: #ffffff;">
       <div class="u-clearfix u-sheet u-sheet-1" style="padding: 80px 20px;">
-        <h2 class="u-text u-text-default u-text-1" style="font-size: 3rem; margin-bottom: 20px; font-weight: 700;">💖 Zostań Sponsorem</h2>
-        <div class="modern-card" style="max-width: 850px; margin: 0 auto; text-align: left;">
-          <h3 style="font-size: 2rem; margin-bottom: 20px; font-weight: 600;">Dlaczego warto nas wesprzeć?</h3>
-          <p style="font-size: 1.15rem; line-height: 1.8; margin-bottom: 25px; color: #555;">
-            Twoje wsparcie pomaga nam utrzymywać serwery, dodawać nowe funkcje i rozwijać społeczność. 
-            Każda donacja jest inwestycją w lepsze doświadczenie dla wszystkich graczy.
+        <h2 class="section-title">Zostań Sponsorem</h2>
+        <div class="modern-card" style="max-width: 800px; margin: 0 auto; text-align: left;">
+          <h3 style="font-size: 1.6rem; margin-bottom: 16px; font-weight: 600;">Dlaczego warto nas wesprzeć?</h3>
+          <p style="font-size: 1.05rem; line-height: 1.7; margin-bottom: 20px; color: #666;">
+            Twoje wsparcie pomaga utrzymywać serwery i rozwijać projekt. Każda donacja się liczy!
           </p>
           
-          <h3 style="font-size: 2rem; margin-bottom: 25px; margin-top: 40px; font-weight: 600;">Co otrzymujesz jako Sponsor?</h3>
-          <ul style="font-size: 1.15rem; line-height: 2.2; margin-bottom: 40px; list-style: none; padding-left: 0;">
+          <h3 style="font-size: 1.6rem; margin-bottom: 20px; margin-top: 32px; font-weight: 600;">Co otrzymujesz?</h3>
+          <ul style="font-size: 1.05rem; line-height: 2; margin-bottom: 32px; list-style: none; padding-left: 0;">
             <li>✅ <strong>Rangę Sponsor</strong> widoczną w TAB i na czacie serwera</li>
             <li>✅ <strong>Kolorowe wiadomości</strong> na czacie (bez koloru czerwonego)</li>
             <li>✅ <strong>Dodatki kosmetyczne</strong> nie ingerujące w ekonomię</li>
@@ -253,10 +249,10 @@
             <li>✅ <strong>Ekskluzywne kanały</strong> na Discord dla sponsorów</li>
           </ul>
           
-          <div style="text-align: center; margin-top: 40px;">
+          <div style="text-align: center; margin-top: 32px;">
             <a href="https://ko-fi.com/chomiczanora" target="_blank" class="modern-btn"
-               style="background: linear-gradient(135deg, #13C3A4 0%, #0FA888 100%); color: white; font-size: 1.25rem; padding: 18px 45px;">
-              ☕ Wspieraj na Ko-fi
+               style="background: #13C3A4; color: white; font-size: 1.1rem; padding: 14px 32px;">
+              ☕ Wesprzyj na Ko-fi
             </a>
           </div>
         </div>
