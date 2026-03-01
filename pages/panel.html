@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel — Chomicza Nora</title>
+  <meta name="description" content="Panel zarządzania Chomicza Nora — Projekt Maszynownia.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#5865F2">
+  <link rel="icon" type="image/png" href="../images/Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    /* Panel-specific styles */
+    .panel-hero {
+      padding: calc(var(--header-h) + 3rem) 1rem 3rem;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      text-align: center;
+    }
+    .panel-hero h1 {
+      color: #fff;
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      margin-bottom: 0.5rem;
+    }
+    .panel-hero p {
+      color: rgba(255,255,255,0.7);
+      font-size: 1.05rem;
+    }
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+      gap: 1.5rem;
+      padding: var(--space-xl) 0;
+    }
+    .panel-card {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      text-align: center;
+      transition: all var(--dur) var(--ease);
+    }
+    .panel-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+    .panel-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .panel-card p {
+      color: var(--c-text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+    .panel-placeholder {
+      text-align: center;
+      padding: var(--space-2xl) 0;
+      color: var(--c-text-muted);
+    }
+    .panel-placeholder svg {
+      width: 64px;
+      height: 64px;
+      color: var(--c-border);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="/" class="logo" aria-label="Strona główna">
+        <img src="../images/Logo.png" alt="Chomicza Nora" width="48" height="48">
+        <span class="logo-text">Chomicza Nora</span>
+      </a>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="main-nav" id="main-nav" aria-label="Nawigacja główna">
+        <ul>
+          <li><a href="/">Strona główna</a></li>
+          <li><a href="/#services">Usługi</a></li>
+          <li><a href="/#status">Status</a></li>
+          <li><a href="/pages/panel.html" class="active">Panel</a></li>
+          <li><a href="https://discord.com/invite/ChTAqW8yDv" target="_blank" rel="noopener" class="btn btn--sm btn--discord">Discord</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Panel Hero -->
+    <section class="panel-hero">
+      <div class="container">
+        <h1>Panel</h1>
+        <p>Zarządzanie usługami i infrastrukturą Maszynownia</p>
+      </div>
+    </section>
+
+    <!-- Panel Content -->
+    <section class="section">
+      <div class="container">
+        <div class="panel-grid">
+          <div class="panel-card">
+            <h3>🖥️ Serwery</h3>
+            <p>Zarządzaj serwerami gier i usługami</p>
+            <a href="#" class="btn btn--discord btn--sm">Wkrótce</a>
+          </div>
+          <div class="panel-card">
+            <h3>📊 Monitoring</h3>
+            <p>Podgląd zasobów i stanu systemów</p>
+            <a href="#" class="btn btn--discord btn--sm">Wkrótce</a>
+          </div>
+          <div class="panel-card">
+            <h3>👥 Użytkownicy</h3>
+            <p>Zarządzanie uprawnieniami i rangami</p>
+            <a href="#" class="btn btn--discord btn--sm">Wkrótce</a>
+          </div>
+          <div class="panel-card">
+            <h3>📝 Logi</h3>
+            <p>Historia zdarzeń i działań na serwerach</p>
+            <a href="#" class="btn btn--discord btn--sm">Wkrótce</a>
+          </div>
+        </div>
+
+        <div class="panel-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 6v6l4 2"/>
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+          <h3>W budowie</h3>
+          <p>Panel jest aktualnie w fazie rozwoju. Już niedługo pojawią się tu nowe funkcje!</p>
+          <a href="https://discord.com/invite/ChTAqW8yDv" target="_blank" rel="noopener" class="btn btn--discord" style="margin-top: 1rem;">
+            Śledź postępy na Discord
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="../images/Logo.png" alt="Logo" width="40" height="40" loading="lazy">
+        <div>
+          <strong>Chomicza Nora</strong>
+          <small>Projekt Maszynownia</small>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="/">Strona główna</a>
+        <a href="/#services">Usługi</a>
+        <a href="/#status">Status</a>
+        <a href="/#support">Sponsoring</a>
+      </div>
+      <p class="footer-copy">&copy; 2024–2026 Chomicza Nora. Wszystkie prawa zastrzeżone.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Minimal nav logic for subpages
+    const toggle = document.querySelector('.nav-toggle');
+    const nav = document.querySelector('#main-nav');
+    if (toggle && nav) {
+      toggle.addEventListener('click', () => {
+        const open = nav.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open);
+      });
+    }
+    // Header scroll
+    const header = document.querySelector('.site-header');
+    if (header) {
+      window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 20);
+      }, { passive: true });
+    }
+  </script>
+</body>
+</html>
