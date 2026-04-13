@@ -205,6 +205,10 @@ function initNav() {
 
   overlay.addEventListener('click', closeNav);
 
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeNav();
+  });
+
   // Close on link click
   $$('a', nav).forEach(a => {
     a.addEventListener('click', () => {

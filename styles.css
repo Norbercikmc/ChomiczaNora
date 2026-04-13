@@ -247,6 +247,14 @@ h1, h2, h3, h4 {
     transition: transform var(--dur) var(--ease);
     z-index: 999;
     overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .main-nav::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
   }
   .main-nav.is-open {
     transform: translateX(0);
@@ -270,7 +278,7 @@ h1, h2, h3, h4 {
     margin-top: 0.5rem;
     border-radius: var(--radius-sm);
   }
-  .main-nav ul li:has(.btn) {
+  .main-nav .nav-cta {
     border-top: 1px solid var(--c-border);
     padding-top: 0.5rem;
     margin-top: 0.25rem;
