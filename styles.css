@@ -11,7 +11,7 @@
   --c-surface:     #ffffff;
   --c-border:      #e2d9f3;
   --c-text:        #1f2937;
-  --c-text-muted:  #6b7280;
+  --c-text-muted:  #2a2d33;
   --c-heading:     #111827;
 
   /* Brand */
@@ -19,7 +19,7 @@
   --c-minecraft:   #62A87C;
   --c-teamspeak:   #FF9500;
   --c-kofi:        #13C3A4;
-  --c-primary:     #7C3AED;
+  --c-primary:     #320481;
 
   /* Typography */
   --ff-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

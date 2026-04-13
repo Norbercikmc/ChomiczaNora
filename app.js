@@ -25,14 +25,14 @@ const services = [
   {
     name: 'Minecraft Server',
     icon: '⛏️',
-    desc: 'Self-hosted serwer z modpackami. Działa 24/7 na Primary Node.',
+    desc: 'Self-hosted serwer z modpackami (czasem bez 😂)',
     color: '#62A87C',
     address: 'mc.chomiczanora.pl',
   },
   {
     name: 'Teamspeak Server',
     icon: '🎙️',
-    desc: 'Niskołatencyjny serwer głosowy. Self-hosted na infrastrukturze Maszynownia.',
+    desc: 'Niskolatencyjny serwer głosowy. Self-hosted na infrastrukturze Maszynownia.',
     color: '#FF9500',
     address: 'ts.chomiczanora.pl',
   },
