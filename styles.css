@@ -239,10 +239,13 @@ h1, h2, h3, h4 {
     top: var(--header-h);
     right: 0;
     bottom: 0;
+    height: calc(100vh - var(--header-h));
+    height: calc(100dvh - var(--header-h));
+    max-height: calc(100dvh - var(--header-h));
     width: min(420px, 92vw);
     background: var(--c-surface);
     box-shadow: var(--shadow-xl);
-    padding: 1.25rem 1.5rem 2rem;
+    padding: 1.25rem 1.5rem max(2rem, env(safe-area-inset-bottom));
     transform: translateX(100%);
     transition: transform var(--dur) var(--ease);
     z-index: 999;
