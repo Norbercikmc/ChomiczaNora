@@ -242,7 +242,7 @@ h1, h2, h3, h4 {
     width: min(320px, 85vw);
     background: var(--c-surface);
     box-shadow: var(--shadow-xl);
-    padding: calc(var(--header-h) + 1rem) 1.5rem 2rem;
+    padding: calc(var(--header-h) + 0.25rem) 1.5rem 2rem;
     transform: translateX(100%);
     transition: transform var(--dur) var(--ease);
     z-index: 999;
