@@ -13,79 +13,30 @@ const CONFIG = {
 };
 
 // ---------- Data ----------
-const aboutCards = [
-  {
-    icon: '🖥️',
-    title: 'HomeLAB Infrastructure',
-    desc: 'Wykorzystujemy PC (Intel i5-11400F, Xeon E5-2690) i Cloud VPS. Łatwa konfiguracja i zdalne zarządzanie.',
-  },
-  {
-    icon: '📊',
-    title: 'Monitoring & Kontrola',
-    desc: 'Monitorowanie zasobów i pełna kontrola. Planowany stack: Grafana, Prometheus.',
-  },
-  {
-    icon: '🔓',
-    title: 'Open-Source First',
-    desc: 'Wszystko na własnych maszynach z open-source. Pełna kontrola nad danymi i bezpieczeństwem.',
-  },
-];
-
 const services = [
   {
     name: 'Discord Server',
-    desc: 'Serwer Discord dla społeczności z botami, eventami i aktywnymi kanałami.',
+    icon: '💬',
+    desc: 'Centrum społeczności. Boty, eventy, aktywne kanały i zaprzyjaźnieni ludzie.',
     color: '#5865F2',
     link: CONFIG.discord,
     linkText: 'Dołącz →',
   },
   {
     name: 'Minecraft Server',
-    desc: 'Dynamiczny self-host paczek modyfikacji. Hosting 24/7 na Primary Node (i5-11400F).',
+    icon: '⛏️',
+    desc: 'Self-hosted serwer z modpackami. Działa 24/7 na Primary Node.',
     color: '#62A87C',
     address: 'mc.chomiczanora.pl',
   },
   {
     name: 'Teamspeak Server',
-    desc: 'Komunikacja głosowa dla społeczności. Self-hosted na infrastrukturze Maszynownia.',
+    icon: '🎙️',
+    desc: 'Niskołatencyjny serwer głosowy. Self-hosted na infrastrukturze Maszynownia.',
     color: '#FF9500',
     address: 'ts.chomiczanora.pl',
   },
-  {
-    name: 'Wsparcie Ko-fi',
-    desc: 'Wspieraj rozwój projektu i otrzymuj dodatkowe rangi oraz kosmetyki.',
-    color: '#13C3A4',
-    link: CONFIG.kofi,
-    linkText: 'Wesprzyj →',
-  },
 ];
-
-const statusItems = [
-  { name: 'Discord Bot',       endpoint: null, fallback: 'online' },
-  { name: 'Minecraft Server',  endpoint: null, fallback: 'online' },
-  { name: 'Teamspeak Server',  endpoint: null, fallback: 'online' },
-];
-
-const faqItems = [
-  {
-    q: 'Czym jest Projekt Maszynownia?',
-    a: 'Maszynownia to HomeLAB oparty o własne serwery fizyczne i VPS. Hostujemy usługi dla społeczności — Discord, Minecraft, Teamspeak i planujemy kolejne.',
-  },
-  {
-    q: 'Jak dołączyć do społeczności?',
-    a: 'Najłatwiej przez Discord! Kliknij przycisk „Dołącz na Discord" na górze strony i zostaniesz od razu dodany do naszego serwera.',
-  },
-  {
-    q: 'Ile kosztuje korzystanie z usług?',
-    a: 'Wszystkie podstawowe usługi są całkowicie darmowe. Możesz nas wesprzeć przez Ko-fi, za co otrzymasz dodatkowe rangi i kosmetyki.',
-  },
-  {
-    q: 'Na jakim sprzęcie działają serwery?',
-    a: 'Primary Node to Intel i5-11400F, Secondary Node to Xeon E5-2690. Korzystamy też z Cloud VPS dla krytycznych usług wymagających wysokiej dostępności.',
-  },
-];
-
-const sponsorBenefits = [];
 
 // ---------- DOM Helpers ----------
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
@@ -113,20 +64,6 @@ function el(tag, attrs = {}, children = []) {
 }
 
 // ---------- Renderers ----------
-function renderAbout() {
-  const grid = $('#about-grid');
-  if (!grid) return;
-  for (const card of aboutCards) {
-    grid.append(
-      el('div', { class: 'card reveal' }, [
-        el('div', { class: 'card-icon', text: card.icon }),
-        el('h3', { text: card.title }),
-        el('p', { text: card.desc }),
-      ])
-    );
-  }
-}
-
 function renderServices() {
   const grid = $('#services-grid');
   if (!grid) return;
@@ -141,7 +78,7 @@ function renderServices() {
           href: s.link,
           target: '_blank',
           rel: 'noopener',
-          class: 'card-link',
+          class: 'service-tile__link',
           style: { color: s.color },
           text: s.linkText,
         })
@@ -157,55 +94,16 @@ function renderServices() {
       addr.addEventListener('click', () => copyToClipboard(s.address));
       body.push(addr);
     }
-    const card = el('div', {
-      class: 'card reveal',
-      style: { '--accent': s.color, borderLeft: `4px solid ${s.color}` },
-    }, body);
-    grid.append(card);
-  }
-}
-
-function renderStatus() {
-  const grid = $('#status-grid');
-  if (!grid) return;
-  for (const item of statusItems) {
-    const dotClass = `status-dot status-dot--${item.fallback || 'loading'}`;
-    grid.append(
-      el('div', { class: 'status-card reveal' }, [
-        el('span', { class: dotClass }),
-        el('span', { class: 'status-name', text: item.name }),
-        el('span', { class: 'status-info', text: item.fallback === 'online' ? 'Dostępny' : 'Sprawdzam...' }),
-      ])
-    );
-  }
-}
-
-function renderFAQ() {
-  const list = $('#faq-list');
-  if (!list) return;
-  for (const item of faqItems) {
-    const chevron = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
-    const accItem = el('div', { class: 'accordion-item reveal' }, [
-      el('button', {
-        class: 'accordion-btn',
-        'aria-expanded': 'false',
-        html: `<span>${item.q}</span>${chevron}`,
-      }),
-      el('div', { class: 'accordion-body' }, [
-        el('div', { class: 'accordion-body-inner', text: item.a }),
+    const tile = el('div', { class: 'service-tile reveal' }, [
+      el('div', {
+        class: 'service-tile__header',
+        style: { background: `linear-gradient(135deg, ${s.color}ee, ${s.color}77)` },
+      }, [
+        el('span', { class: 'service-tile__icon', text: s.icon }),
       ]),
+      el('div', { class: 'service-tile__body' }, body),
     ]);
-    const btn = accItem.querySelector('.accordion-btn');
-    btn.addEventListener('click', () => toggleAccordion(accItem));
-    list.append(accItem);
-  }
-}
-
-function renderBenefits() {
-  const list = $('#benefit-list');
-  if (!list) return;
-  for (const b of sponsorBenefits) {
-    list.append(el('li', { html: b }));
+    grid.append(tile);
   }
 }
 
@@ -382,7 +280,6 @@ function initActiveNav() {
 // ---------- Init ----------
 function init() {
   renderServices();
-  renderFAQ();
   initNav();
   initHeaderScroll();
   initBackToTop();
