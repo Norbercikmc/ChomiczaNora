@@ -83,19 +83,9 @@ const faqItems = [
     q: 'Na jakim sprzęcie działają serwery?',
     a: 'Primary Node to Intel i5-11400F, Secondary Node to Xeon E5-2690. Korzystamy też z Cloud VPS dla krytycznych usług wymagających wysokiej dostępności.',
   },
-  {
-    q: 'Czy mogę zaproponować nowy serwis?',
-    a: 'Oczywiście! Najlepiej napisz na kanale #propozycje na Discordzie. Sponsorzy mają dodatkowe prawo głosu w wyborze nowych funkcji.',
-  },
 ];
 
-const sponsorBenefits = [
-  '<strong>Rangę Sponsor</strong> widoczną w TAB i na czacie serwera',
-  '<strong>Kolorowe wiadomości</strong> na czacie (bez koloru czerwonego)',
-  '<strong>Dodatki kosmetyczne</strong> nie ingerujące w ekonomię',
-  '<strong>Wpływ na rozwój</strong> — głosowanie na nowe funkcje',
-  '<strong>Ekskluzywne kanały</strong> na Discord dla sponsorów',
-];
+const sponsorBenefits = [];
 
 // ---------- DOM Helpers ----------
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
@@ -391,11 +381,8 @@ function initActiveNav() {
 
 // ---------- Init ----------
 function init() {
-  renderAbout();
   renderServices();
-  renderStatus();
   renderFAQ();
-  renderBenefits();
   initNav();
   initHeaderScroll();
   initBackToTop();

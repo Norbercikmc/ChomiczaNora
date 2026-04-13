@@ -6,10 +6,10 @@
 /* ---------- Design Tokens ---------- */
 :root {
   /* Colors */
-  --c-bg:          #fafbfc;
-  --c-bg-alt:      #f3f4f6;
+  --c-bg:          #faf5ff;
+  --c-bg-alt:      #f3e8ff;
   --c-surface:     #ffffff;
-  --c-border:      #e5e7eb;
+  --c-border:      #e2d9f3;
   --c-text:        #1f2937;
   --c-text-muted:  #6b7280;
   --c-heading:     #111827;
@@ -19,7 +19,7 @@
   --c-minecraft:   #62A87C;
   --c-teamspeak:   #FF9500;
   --c-kofi:        #13C3A4;
-  --c-primary:     var(--c-discord);
+  --c-primary:     #7C3AED;
 
   /* Typography */
   --ff-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -197,7 +197,7 @@ h1, h2, h3, h4 {
 .main-nav a:hover,
 .main-nav a.active {
   color: var(--c-primary);
-  background: rgba(88, 101, 242, 0.06);
+  background: rgba(124, 58, 237, 0.07);
 }
 
 /* Hamburger */
@@ -278,7 +278,7 @@ h1, h2, h3, h4 {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(135deg, rgba(88, 101, 242, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, transparent 60%),
     linear-gradient(315deg, rgba(19, 195, 164, 0.06) 0%, transparent 60%),
     url('images/f35ae7bf5c2df0f55c4ae85852d86450442cf02e68c6a75353c80cdec7781861ce217324e6ab221ad903db8eab48272cde47d08a919e5c448fcb5f_1280.jpg') center / cover no-repeat;
   filter: brightness(0.35);
@@ -372,8 +372,8 @@ h1, h2, h3, h4 {
   transform: translateY(-4px);
 }
 .card--highlight {
-  border: 2px solid var(--c-kofi);
-  background: linear-gradient(135deg, var(--c-surface) 0%, #f0fffc 100%);
+  border: 2px solid var(--c-primary);
+  background: linear-gradient(135deg, var(--c-surface) 0%, #f5eeff 100%);
 }
 .card--highlight:hover {
   transform: none;
@@ -574,7 +574,7 @@ h1, h2, h3, h4 {
 
 /* ---------- Footer ---------- */
 .site-footer {
-  background: #1a1a2e;
+  background: #160d28;
   color: rgba(255, 255, 255, 0.7);
   padding: var(--space-xl) 0 var(--space-lg);
 }
