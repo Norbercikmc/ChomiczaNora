@@ -38,6 +38,56 @@ const services = [
   },
 ];
 
+const hosts = [
+  {
+    name: 'i5-11400F',
+    icon: '🎮',
+    specs: '32 GB RAM · GT 210',
+    role: 'Produkcja — serwery gier, w tym Minecraft w dedykowanej VM.',
+  },
+  {
+    name: 'Xeon E5-2690',
+    icon: '💾',
+    specs: '64 GB RAM',
+    role: 'Backupy, magazyn danych i usługi infrastrukturalne.',
+  },
+  {
+    name: 'i7-8700',
+    icon: '🤖',
+    specs: '24 GB RAM · RTX 2070 Super',
+    role: 'Lokalne AI — LLM (Ollama), Open WebUI i bot Discord.',
+  },
+  {
+    name: 'i5-4570',
+    icon: '📊',
+    specs: '12 GB RAM',
+    role: 'Monitoring dostępności hostów i usług (Uptime Kuma).',
+  },
+  {
+    name: 'FX-8300',
+    icon: '🧪',
+    specs: '16 GB RAM',
+    role: 'Środowisko testowe uruchamiane na żądanie.',
+  },
+  {
+    name: 'Pentium E5300',
+    icon: '🕹️',
+    specs: '2 GB RAM',
+    role: 'Opcjonalny host edukacyjny i retro.',
+  },
+];
+
+const stack = [
+  'Proxmox VE',
+  'Proxmox Backup Server',
+  'WireGuard',
+  'HAProxy',
+  'OPNsense',
+  'Docker',
+  'Ollama',
+  'Uptime Kuma',
+];
+
 // ---------- DOM Helpers ----------
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
@@ -104,6 +154,28 @@ function renderServices() {
       el('div', { class: 'service-tile__body' }, body),
     ]);
     grid.append(tile);
+  }
+}
+
+function renderInfrastructure() {
+  const grid = $('#infra-grid');
+  if (grid) {
+    for (const h of hosts) {
+      grid.append(
+        el('div', { class: 'host-card reveal' }, [
+          el('span', { class: 'host-card__icon', text: h.icon }),
+          el('h3', { text: h.name }),
+          el('p', { class: 'host-card__specs', text: h.specs }),
+          el('p', { class: 'host-card__role', text: h.role }),
+        ])
+      );
+    }
+  }
+  const badges = $('#stack-badges');
+  if (badges) {
+    for (const t of stack) {
+      badges.append(el('span', { class: 'stack-badge', text: t }));
+    }
   }
 }
 
@@ -284,6 +356,7 @@ function initActiveNav() {
 // ---------- Init ----------
 function init() {
   renderServices();
+  renderInfrastructure();
   initNav();
   initHeaderScroll();
   initBackToTop();

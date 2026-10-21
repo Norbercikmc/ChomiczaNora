@@ -584,6 +584,59 @@ h1, h2, h3, h4 {
   font-size: 0.95rem;
 }
 
+/* ---------- Infrastructure ---------- */
+.host-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  text-align: center;
+  transition: all var(--dur) var(--ease);
+}
+.host-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+.host-card__icon {
+  display: block;
+  font-size: 2.25rem;
+  line-height: 1;
+  margin-bottom: var(--space-sm);
+}
+.host-card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.25rem;
+}
+.host-card__specs {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--c-primary);
+  margin-bottom: 0.5rem;
+}
+.host-card__role {
+  color: var(--c-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.stack-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: var(--space-xl);
+}
+.stack-badge {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--c-heading);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+}
+
 /* ---------- Sponsor Block ---------- */
 .sponsor-block {
   display: flex;
