@@ -61,7 +61,7 @@
       var raw = JSON.parse(localStorage.getItem(KEY));
       if (raw && isFinite(raw.nuts) && raw.nuts >= 0) s.nuts = raw.nuts;
       if (raw && isFinite(raw.total) && raw.total >= 0) s.total = raw.total;
-      s.total = Math.max(s.total, s.nuts);
+      if (!(raw && isFinite(raw.total))) s.total = s.nuts;
       UPGRADES.forEach(function (u) {
         var v = raw && raw.owned && raw.owned[u.id];
         if (Number.isInteger(v) && v > 0) s.owned[u.id] = v;
@@ -120,9 +120,12 @@
   var tabs = el("div", "shop__tabs");
   var toggle = el("button", "shop__toggle", "Ulepszenia");
   var boardToggle = el("button", "shop__toggle", "Ranking");
-  toggle.type = boardToggle.type = "button";
+  var gambleToggle = el("button", "shop__toggle", "Gamba");
+  toggle.type = boardToggle.type = gambleToggle.type = "button";
   toggle.setAttribute("aria-controls", "shop-list");
   boardToggle.setAttribute("aria-controls", "shop-board");
+  gambleToggle.setAttribute("aria-controls", "shop-gamble");
+  tabs.appendChild(gambleToggle);
   tabs.appendChild(boardToggle);
   tabs.appendChild(toggle);
   var list = el("div", "shop__list");
@@ -256,21 +259,88 @@
   setInterval(submitScore, 30000);
   setInterval(function () { if (view === "board") refreshBoard(); }, 60000);
 
+  // Gamba: tylko wirtualne orzeszki, wygrane nie liczą się do rankingu (state.total)
+  var GAMES = [
+    { icon: "🪙", name: "Rzut monetą", desc: "48% szans na ×2", outcomes: [[0.48, 2], [0.52, 0]] },
+    { icon: "🎡", name: "Koło chomika", desc: "×0 / ×1 / ×2 / ×3 / ×10", outcomes: [[0.58, 0], [0.15, 1], [0.15, 2], [0.10, 3], [0.02, 10]] }
+  ];
+  var gamble = el("div", "shop__list gamble");
+  gamble.id = "shop-gamble";
+  var gambleMsg = el("p", "board__msg", "Postaw orzeszki i spróbuj szczęścia.");
+  var betInput = el("input", "board__nick");
+  betInput.type = "number";
+  betInput.min = "1";
+  betInput.step = "1";
+  betInput.value = "10";
+  betInput.setAttribute("aria-label", "Stawka");
+  var quick = el("div", "board__row");
+  [["10%", 0.1], ["50%", 0.5], ["Wszystko", 1]].forEach(function (q) {
+    var qb = el("button", "board__save", q[0]);
+    qb.type = "button";
+    qb.addEventListener("click", function () {
+      betInput.value = Math.max(1, Math.floor(state.nuts * q[1]));
+    });
+    quick.appendChild(qb);
+  });
+  gamble.appendChild(gambleMsg);
+  gamble.appendChild(betInput);
+  gamble.appendChild(quick);
+
+  var busy = false;
+  function play(g) {
+    if (busy) return;
+    var bet = Math.floor(Number(betInput.value));
+    if (!isFinite(bet) || bet < 1) { gambleMsg.textContent = "Podaj stawkę (min. 1)."; return; }
+    if (bet > Math.floor(state.nuts)) { gambleMsg.textContent = "Nie masz tylu orzeszków."; return; }
+    busy = true;
+    state.nuts -= bet;
+    gambleMsg.textContent = "🎲 Losowanie…";
+    render();
+    setTimeout(function () {
+      var r = Math.random(), acc = 0, mult = 0;
+      for (var i = 0; i < g.outcomes.length; i++) {
+        acc += g.outcomes[i][0];
+        if (r < acc) { mult = g.outcomes[i][1]; break; }
+      }
+      state.nuts += bet * mult;
+      gambleMsg.textContent = mult === 0 ? "Przegrana: −" + fmt(bet) + " 🌰"
+        : mult === 1 ? "Zwrot stawki."
+        : "Wygrana ×" + mult + ": +" + fmt(bet * (mult - 1)) + " 🌰";
+      busy = false;
+      save();
+      render();
+    }, 600);
+  }
+  GAMES.forEach(function (g) {
+    var b = el("button", "up");
+    b.type = "button";
+    b.appendChild(el("span", "up__icon", g.icon));
+    b.appendChild(el("span", "up__name", g.name));
+    b.appendChild(el("span", "up__count"));
+    b.appendChild(el("span", "up__desc", g.desc));
+    b.addEventListener("click", function () { play(g); });
+    gamble.appendChild(b);
+  });
+
   shop.appendChild(tabs);
   shop.appendChild(list);
   shop.appendChild(board);
+  shop.appendChild(gamble);
   d.body.appendChild(shop);
 
   function setView(v) {
     view = v;
     list.hidden = v !== "up";
     board.hidden = v !== "board";
+    gamble.hidden = v !== "gamble";
     toggle.setAttribute("aria-expanded", String(v === "up"));
     boardToggle.setAttribute("aria-expanded", String(v === "board"));
+    gambleToggle.setAttribute("aria-expanded", String(v === "gamble"));
     if (v === "board") refreshBoard();
   }
   toggle.addEventListener("click", function () { setView(view === "up" ? null : "up"); });
   boardToggle.addEventListener("click", function () { setView(view === "board" ? null : "board"); });
+  gambleToggle.addEventListener("click", function () { setView(view === "gamble" ? null : "gamble"); });
   setView(window.matchMedia("(min-width: 800px)").matches ? "up" : null);
 
   function buy(u) {
