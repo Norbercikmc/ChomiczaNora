@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Chomicza Nora</title>
   <meta name="description" content="Projekt Maszynownia — self-hostingowy HomeLAB: serwery Discord, Minecraft, Teamspeak i więcej. Dołącz do społeczności!">
   <meta name="keywords" content="Chomicza Nora, Projekt Maszynownia, Self-Hosting, HomeLAB, Serwery, Discord, Minecraft, Teamspeak">
@@ -139,7 +139,8 @@
       color: rgba(255, 255, 255, 0.04);
       transition: color 0.4s;
     }
-    .secret:hover { color: rgba(255, 255, 255, 0.7); }
+    .secret:hover,
+    .secret:focus { color: rgba(255, 255, 255, 0.7); outline: none; }
 
     .egg {
       position: fixed;
@@ -152,6 +153,9 @@
       background: #62A87C;
       border: 3px solid #2f5a40;
       border-radius: 4px;
+      width: max-content;
+      max-width: calc(100vw - 2rem);
+      text-align: center;
       transform: translate(-50%, -200%);
       transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     }
@@ -160,6 +164,7 @@
     .logo-hit {
       cursor: pointer;
       user-select: none;
+      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
     .logo-hit.is-shaking { animation: shake 0.4s ease-in-out; }
@@ -189,6 +194,13 @@
       45% { transform: translate(-6px, 2px) rotate(-3deg); }
       60% { transform: translate(5px, -2px) rotate(3deg); }
       80% { transform: translate(-3px, 1px) rotate(-1deg); }
+    }
+
+    @media (max-width: 600px) {
+      .glow { filter: blur(60px); }
+      .discord-btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
+      .reaction { font-size: 2rem; }
+      .secret { font-size: 0.75rem; padding: 0.5rem; right: 0.25rem; bottom: 0.1rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -225,7 +237,7 @@
     Discord
   </a>
 
-  <div class="secret">Jebać Timpa</div>
+  <div class="secret" tabindex="0">Jebać Timpa</div>
 
   <div class="egg" id="egg" role="status" aria-live="polite">Serwer Minecraft: wersja 31</div>
 
