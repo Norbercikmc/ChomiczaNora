@@ -440,5 +440,49 @@
   d.addEventListener("visibilitychange", function () { if (d.hidden) save(); });
   window.addEventListener("pagehide", save);
 
+  // Wykrywanie nowej wersji strony przez porównanie ETag/Last-Modified plików
+  var FILES = ["./", "assets/game.js", "assets/game.css", "assets/s.js", "assets/s.css"];
+  var version = null;
+  var updateReady = false;
+
+  function stamp() {
+    return Promise.all(FILES.map(function (f) {
+      return fetch(f, { method: "HEAD", cache: "no-store" }).then(function (r) {
+        return r.headers.get("etag") || r.headers.get("last-modified") || "";
+      });
+    })).then(function (a) { return a.join("|"); });
+  }
+
+  function reloadSafely() {
+    // Ochrona przed pętlą przeładowań, gdyby serwer zwracał niestabilne nagłówki
+    var last = 0;
+    try { last = Number(sessionStorage.getItem(KEY + "-reload")) || 0; } catch (e) { /* brak storage */ }
+    if (Date.now() - last < 600000) return;
+    try { sessionStorage.setItem(KEY + "-reload", String(Date.now())); } catch (e) { /* brak storage */ }
+    save();
+    location.reload();
+  }
+
+  function checkUpdate() {
+    if (updateReady) return;
+    stamp().then(function (v) {
+      if (version === null) { version = v; return; }
+      if (v === version) return;
+      updateReady = true;
+      save();
+      var btn = el("button", "update", "Nowa wersja strony — odśwież");
+      btn.type = "button";
+      btn.addEventListener("click", function () { location.reload(); });
+      d.body.appendChild(btn);
+      if (d.hidden) reloadSafely();
+    }).catch(function () { /* brak sieci */ });
+  }
+
+  d.addEventListener("visibilitychange", function () {
+    if (d.hidden) { if (updateReady) reloadSafely(); } else checkUpdate();
+  });
+  setInterval(checkUpdate, 120000);
+  checkUpdate();
+
   render();
 })();

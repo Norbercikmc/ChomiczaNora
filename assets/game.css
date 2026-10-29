@@ -32,3 +32,4 @@
 
 .pop{position:fixed;z-index:3;pointer-events:none;color:#fff;font:800 1.25rem/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-shadow:0 0 12px rgba(109,40,217,.95);transform:translate(-50%,0);animation:pop .8s ease-out forwards}
 @keyframes pop{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-60px)}}
+.update{position:fixed;top:1rem;left:1rem;z-index:3;padding:.5rem 1rem;border:0;border-radius:6px;background:#13c3a4;color:#04110e;font:700 .85rem/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
