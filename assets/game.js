@@ -25,10 +25,12 @@
   }
 
   function load() {
-    var s = { nuts: 0, owned: {} };
+    var s = { nuts: 0, total: 0, owned: {} };
     try {
       var raw = JSON.parse(localStorage.getItem(KEY));
       if (raw && isFinite(raw.nuts) && raw.nuts >= 0) s.nuts = raw.nuts;
+      if (raw && isFinite(raw.total) && raw.total >= 0) s.total = raw.total;
+      s.total = Math.max(s.total, s.nuts);
       UPGRADES.forEach(function (u) {
         var v = raw && raw.owned && raw.owned[u.id];
         if (Number.isInteger(v) && v > 0) s.owned[u.id] = v;
@@ -70,11 +72,18 @@
 
   // Sklep
   var shop = el("aside", "shop");
+  var tabs = el("div", "shop__tabs");
   var toggle = el("button", "shop__toggle", "Ulepszenia");
-  toggle.type = "button";
+  var boardToggle = el("button", "shop__toggle", "Ranking");
+  toggle.type = boardToggle.type = "button";
   toggle.setAttribute("aria-controls", "shop-list");
+  boardToggle.setAttribute("aria-controls", "shop-board");
+  tabs.appendChild(boardToggle);
+  tabs.appendChild(toggle);
   var list = el("div", "shop__list");
   list.id = "shop-list";
+  var board = el("div", "shop__list board");
+  board.id = "shop-board";
 
   UPGRADES.forEach(function (u) {
     var b = el("button", "up");
@@ -95,22 +104,121 @@
   reset.type = "button";
   reset.addEventListener("click", function () {
     if (!confirm("Na pewno usunąć cały postęp?")) return;
-    state = { nuts: 0, owned: {} };
+    state = { nuts: 0, total: 0, owned: {} };
     save();
     render();
   });
   list.appendChild(reset);
 
-  shop.appendChild(toggle);
+  // Ranking globalny (serwer Java za reverse proxy z HTTPS)
+  var API = "https://api.chomiczanora.pl/scores";
+  var ID_KEY = KEY + "-id";
+  var NICK_KEY = KEY + "-nick";
+  var NICK_RE = /^[\p{L}\p{N} _.-]{2,16}$/u;
+  var playerId = loadId();
+  var nick = "";
+  var lastSent = -1;
+  var view = null;
+  try { nick = localStorage.getItem(NICK_KEY) || ""; } catch (e) { /* brak storage */ }
+  if (!NICK_RE.test(nick)) nick = "";
+
+  function loadId() {
+    try {
+      var saved = localStorage.getItem(ID_KEY);
+      if (saved && /^[0-9a-f]{32}$/.test(saved)) return saved;
+    } catch (e) { /* brak storage */ }
+    var a = new Uint8Array(16);
+    crypto.getRandomValues(a);
+    var id = Array.prototype.map.call(a, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+    try { localStorage.setItem(ID_KEY, id); } catch (e) { /* brak storage */ }
+    return id;
+  }
+
+  var boardMsg = el("p", "board__msg", "Ładowanie…");
+  var boardList = el("ol", "board__list");
+  var nickRow = el("div", "board__row");
+  var nickInput = el("input", "board__nick");
+  nickInput.type = "text";
+  nickInput.maxLength = 16;
+  nickInput.placeholder = "Twój nick";
+  nickInput.autocomplete = "off";
+  nickInput.value = nick;
+  nickInput.setAttribute("aria-label", "Nick w rankingu");
+  var nickBtn = el("button", "board__save", "Zapisz");
+  nickBtn.type = "button";
+  nickRow.appendChild(nickInput);
+  nickRow.appendChild(nickBtn);
+  board.appendChild(boardMsg);
+  board.appendChild(boardList);
+  board.appendChild(nickRow);
+
+  function refreshBoard() {
+    fetch(API, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (rows) {
+        boardList.textContent = "";
+        rows.slice(0, 10).forEach(function (row) {
+          var li = el("li", "board__item");
+          li.appendChild(el("span", "board__name", String(row.nick)));
+          li.appendChild(el("span", "board__score", fmt(Number(row.score))));
+          boardList.appendChild(li);
+        });
+        boardMsg.textContent = rows.length ? "Zebrane orzeszki łącznie" : "Brak wyników — bądź pierwszy!";
+      })
+      .catch(function () { boardMsg.textContent = "Ranking jest teraz niedostępny."; });
+  }
+
+  function submitScore() {
+    var total = Math.floor(state.total);
+    if (!nick || total <= lastSent) return;
+    lastSent = total;
+    fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: playerId, nick: nick, score: total })
+    }).then(function (r) {
+      if (r.status === 409) {
+        boardMsg.textContent = "Ten nick jest już zajęty.";
+        nick = "";
+        lastSent = -1;
+        return;
+      }
+      if (!r.ok) throw new Error(r.status);
+      if (view === "board") refreshBoard();
+    }).catch(function () { lastSent = -1; });
+  }
+
+  nickBtn.addEventListener("click", function () {
+    var v = nickInput.value.trim();
+    if (!NICK_RE.test(v)) {
+      boardMsg.textContent = "Nick: 2–16 znaków (litery, cyfry, spacja, _ . -).";
+      return;
+    }
+    nick = v;
+    try { localStorage.setItem(NICK_KEY, v); } catch (e) { /* brak storage */ }
+    lastSent = -1;
+    submitScore();
+  });
+
+  setInterval(submitScore, 30000);
+  setInterval(function () { if (view === "board") refreshBoard(); }, 60000);
+
+  shop.appendChild(tabs);
   shop.appendChild(list);
+  shop.appendChild(board);
   d.body.appendChild(shop);
 
-  function setOpen(open) {
-    list.hidden = !open;
-    toggle.setAttribute("aria-expanded", String(open));
+  function setView(v) {
+    view = v;
+    list.hidden = v !== "up";
+    board.hidden = v !== "board";
+    toggle.setAttribute("aria-expanded", String(v === "up"));
+    boardToggle.setAttribute("aria-expanded", String(v === "board"));
+    if (v === "board") refreshBoard();
   }
-  toggle.addEventListener("click", function () { setOpen(list.hidden); });
-  setOpen(window.matchMedia("(min-width: 800px)").matches);
+  toggle.addEventListener("click", function () { setView(view === "up" ? null : "up"); });
+  boardToggle.addEventListener("click", function () { setView(view === "board" ? null : "board"); });
+  setView(window.matchMedia("(min-width: 800px)").matches ? "up" : null);
 
   function buy(u) {
     var c = cost(u);
@@ -152,6 +260,7 @@
   hit.addEventListener("click", function (e) {
     var gain = perClick();
     state.nuts += gain;
+    state.total += gain;
     var x = e.clientX, y = e.clientY;
     if (!x && !y) {
       var rect = hit.getBoundingClientRect();
@@ -166,6 +275,7 @@
     var cps = perSecond();
     if (!cps) return;
     state.nuts += cps / 10;
+    state.total += cps / 10;
     render();
   }, 100);
 
