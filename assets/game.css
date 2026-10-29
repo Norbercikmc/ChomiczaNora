@@ -25,6 +25,8 @@
 .up__count{font-weight:700;color:#c4b5fd}
 .up__desc{font-size:.75rem;opacity:.7}
 .up__cost{font-size:.8rem;font-weight:600}
+.once{display:flex;flex-direction:column;gap:.4rem}
+.once .up{border-color:rgba(252,211,77,.55)}
 .shop__reset{margin-top:.25rem;padding:.35rem;border:0;background:none;color:rgba(255,255,255,.5);font:inherit;font-size:.75rem;cursor:pointer}
 .shop__reset:hover{color:#fff}
 

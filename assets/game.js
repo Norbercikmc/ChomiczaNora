@@ -8,13 +8,44 @@
   if (!hit || !wrap) return;
 
   var UPGRADES = [
-    { id: "paw", icon: "🐾", name: "Mocniejsze łapki", desc: "+1 orzeszek za kliknięcie", base: 50, growth: 2.2, click: 1 },
+    { id: "paw", icon: "🐾", name: "Mocniejsze łapki", desc: "+1 orzeszek za kliknięcie", base: 50, growth: 1.7, click: 1 },
     { id: "hamster", icon: "🐹", name: "Chomik", desc: "1 orzeszek/s", base: 15, growth: 1.15, cps: 1 },
     { id: "wheel", icon: "🎡", name: "Koło do biegania", desc: "5 orzeszków/s", base: 100, growth: 1.15, cps: 5 },
     { id: "pi", icon: "🥧", name: "Raspberry Pi", desc: "20 orzeszków/s", base: 600, growth: 1.15, cps: 20 },
     { id: "mc", icon: "⛏️", name: "Serwer Minecraft", desc: "100 orzeszków/s", base: 3000, growth: 1.15, cps: 100 },
-    { id: "lab", icon: "🖥️", name: "Maszynownia", desc: "500 orzeszków/s", base: 15000, growth: 1.15, cps: 500 }
+    { id: "lab", icon: "🖥️", name: "Maszynownia", desc: "500 orzeszków/s", base: 15000, growth: 1.15, cps: 500 },
+    { id: "rack", icon: "🗄️", name: "Szafa rack", desc: "2 500 orzeszków/s", base: 80000, growth: 1.15, cps: 2500 },
+    { id: "gpu", icon: "🎮", name: "Farma GPU", desc: "12 000 orzeszków/s", base: 450000, growth: 1.15, cps: 12000 },
+    { id: "ai", icon: "🤖", name: "Klaster AI", desc: "60 000 orzeszków/s", base: 2500000, growth: 1.15, cps: 60000 },
+    { id: "dc", icon: "🏢", name: "Centrum danych", desc: "350 000 orzeszków/s", base: 15000000, growth: 1.15, cps: 350000 }
   ];
+
+  // Jednorazowe ulepszenia, widoczne dopiero po spełnieniu warunku ok()
+  var ONCE = [];
+  UPGRADES.forEach(function (u) {
+    if (!u.cps) return;
+    [{ n: 10, k: 50 }, { n: 25, k: 400 }].forEach(function (t, i) {
+      ONCE.push({
+        id: u.id + (i + 1), icon: u.icon, name: u.name + " — poziom " + (i + 2),
+        desc: "Produkcja ×2 (od " + t.n + " szt.)", cost: u.base * t.k, target: u.id, mult: 2,
+        ok: function () { return count(u) >= t.n; }
+      });
+    });
+  });
+  ONCE.push(
+    { id: "gloves", icon: "🧤", name: "Złote łapki", desc: "Klikanie ×2 (od 10 łapek)", cost: 25000, clickMult: 2,
+      ok: function () { return (state.owned.paw || 0) >= 10; } },
+    { id: "coach", icon: "🏋️", name: "Trener chomików", desc: "Kliknięcie daje +2% produkcji/s", cost: 10000, clickPct: 0.02,
+      ok: function () { return state.total >= 5000; } },
+    { id: "champ", icon: "🏆", name: "Mistrz klikania", desc: "Kliknięcie daje dodatkowo +5% produkcji/s", cost: 1000000, clickPct: 0.05,
+      ok: function () { return state.total >= 500000; } },
+    { id: "oc", icon: "⚡", name: "Przetaktowanie", desc: "Cała produkcja +25%", cost: 200000, global: 1.25,
+      ok: function () { return state.total >= 100000; } },
+    { id: "psu", icon: "🔌", name: "Zasilacz Gold", desc: "Cała produkcja +25%", cost: 5000000, global: 1.25,
+      ok: function () { return state.total >= 2500000; } },
+    { id: "water", icon: "❄️", name: "Chłodzenie wodne", desc: "Cała produkcja +50%", cost: 100000000, global: 1.5,
+      ok: function () { return state.total >= 50000000; } }
+  );
 
   var state = load();
   var rows = {};
@@ -25,7 +56,7 @@
   }
 
   function load() {
-    var s = { nuts: 0, total: 0, owned: {} };
+    var s = { nuts: 0, total: 0, owned: {}, ups: {} };
     try {
       var raw = JSON.parse(localStorage.getItem(KEY));
       if (raw && isFinite(raw.nuts) && raw.nuts >= 0) s.nuts = raw.nuts;
@@ -34,6 +65,9 @@
       UPGRADES.forEach(function (u) {
         var v = raw && raw.owned && raw.owned[u.id];
         if (Number.isInteger(v) && v > 0) s.owned[u.id] = v;
+      });
+      ONCE.forEach(function (o) {
+        if (raw && raw.ups && raw.ups[o.id] === true) s.ups[o.id] = true;
       });
     } catch (e) { /* brak lub uszkodzony zapis */ }
     return s;
@@ -46,11 +80,22 @@
   function count(u) { return state.owned[u.id] || 0; }
   function cost(u) { return Math.ceil(u.base * Math.pow(u.growth, count(u))); }
 
-  function perClick() {
-    return UPGRADES.reduce(function (a, u) { return a + (u.click || 0) * count(u); }, 1);
+  function bought(o) { return !!state.ups[o.id]; }
+  function buildingMult(u) {
+    return ONCE.reduce(function (a, o) { return a * (bought(o) && o.target === u.id ? o.mult : 1); }, 1);
+  }
+  function globalMult() {
+    return ONCE.reduce(function (a, o) { return a * (bought(o) && o.global ? o.global : 1); }, 1);
   }
   function perSecond() {
-    return UPGRADES.reduce(function (a, u) { return a + (u.cps || 0) * count(u); }, 0);
+    var sum = UPGRADES.reduce(function (a, u) { return a + (u.cps || 0) * count(u) * buildingMult(u); }, 0);
+    return sum * globalMult();
+  }
+  function perClick() {
+    var base = UPGRADES.reduce(function (a, u) { return a + (u.click || 0) * count(u); }, 1);
+    var mult = ONCE.reduce(function (a, o) { return a * (bought(o) && o.clickMult ? o.clickMult : 1); }, 1);
+    var pct = ONCE.reduce(function (a, o) { return a + (bought(o) && o.clickPct ? o.clickPct : 0); }, 0);
+    return base * mult + perSecond() * pct;
   }
 
   function el(tag, cls, text) {
@@ -85,6 +130,14 @@
   var board = el("div", "shop__list board");
   board.id = "shop-board";
 
+  var onceHead = el("p", "board__msg", "Dostępne ulepszenia");
+  onceHead.hidden = true;
+  var onceBox = el("div", "once");
+  var onceKey = "";
+  var onceRows = {};
+  list.appendChild(onceHead);
+  list.appendChild(onceBox);
+
   UPGRADES.forEach(function (u) {
     var b = el("button", "up");
     b.type = "button";
@@ -104,7 +157,7 @@
   reset.type = "button";
   reset.addEventListener("click", function () {
     if (!confirm("Na pewno usunąć cały postęp?")) return;
-    state = { nuts: 0, total: 0, owned: {} };
+    state = { nuts: 0, total: 0, owned: {}, ups: {} };
     save();
     render();
   });
@@ -229,6 +282,14 @@
     render();
   }
 
+  function buyOnce(o) {
+    if (bought(o) || state.nuts < o.cost) return;
+    state.nuts -= o.cost;
+    state.ups[o.id] = true;
+    save();
+    render();
+  }
+
   function render() {
     var n = Math.floor(state.nuts);
     scoreNum.textContent = fmt(n);
@@ -237,6 +298,32 @@
       ? cps.toLocaleString("pl-PL", { maximumFractionDigits: 1 }) + " na sekundę"
       : "kliknij logo!";
     d.title = fmt(n) + " orzeszków — Chomicza Nora";
+
+    var visible = ONCE.filter(function (o) { return !bought(o) && o.ok(); });
+    var key = visible.map(function (o) { return o.id; }).join();
+    if (key !== onceKey) {
+      onceKey = key;
+      onceBox.textContent = "";
+      onceRows = {};
+      onceHead.hidden = !visible.length;
+      visible.forEach(function (o) {
+        var b = el("button", "up");
+        b.type = "button";
+        b.appendChild(el("span", "up__icon", o.icon));
+        b.appendChild(el("span", "up__name", o.name));
+        b.appendChild(el("span", "up__count"));
+        b.appendChild(el("span", "up__desc", o.desc));
+        b.appendChild(el("span", "up__cost", "🌰 " + fmt(o.cost)));
+        b.addEventListener("click", function () { buyOnce(o); });
+        onceBox.appendChild(b);
+        onceRows[o.id] = b;
+      });
+    }
+    visible.forEach(function (o) {
+      var locked = state.nuts < o.cost;
+      onceRows[o.id].classList.toggle("is-locked", locked);
+      onceRows[o.id].setAttribute("aria-disabled", String(locked));
+    });
 
     UPGRADES.forEach(function (u) {
       var r = rows[u.id];
