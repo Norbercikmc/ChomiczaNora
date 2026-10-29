@@ -443,6 +443,43 @@
   d.addEventListener("visibilitychange", function () { if (d.hidden) save(); });
   window.addEventListener("pagehide", save);
 
+  // Status serwera Minecraft (publiczne API mcsrvstat.us)
+  var MC_HOST = "mc.chomiczanora.pl";
+  var mcBtn = d.getElementById("mc");
+  if (mcBtn) {
+    var mcText = mcBtn.querySelector(".mc-btn__text");
+    var mcLabel = "Minecraft";
+    var mcStatus = function () {
+      fetch("https://api.mcsrvstat.us/3/" + MC_HOST, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (j) {
+          if (j && j.online) {
+            var p = j.players || {};
+            mcBtn.dataset.state = "online";
+            mcLabel = "Minecraft " + Number(p.online || 0) + "/" + Number(p.max || 0);
+            mcBtn.title = (j.version ? "Wersja: " + String(j.version) + ". " : "") + "Kliknij, aby skopiować adres serwera";
+          } else {
+            mcBtn.dataset.state = "offline";
+            mcLabel = "Minecraft offline";
+          }
+          mcText.textContent = mcLabel;
+        })
+        .catch(function () {
+          mcBtn.dataset.state = "unknown";
+          mcLabel = "Minecraft";
+          mcText.textContent = mcLabel;
+        });
+    };
+    mcBtn.addEventListener("click", function () {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(MC_HOST).then(function () {
+        mcText.textContent = "Skopiowano: " + MC_HOST;
+        setTimeout(function () { mcText.textContent = mcLabel; }, 1800);
+      }).catch(function () { /* brak uprawnień schowka */ });
+    });
+    mcStatus();
+    setInterval(mcStatus, 60000);
+  }
   // Wykrywanie nowej wersji strony przez porównanie ETag/Last-Modified plików
   var FILES = ["./", "assets/game.js", "assets/game.css", "assets/s.js", "assets/s.css"];
   var version = null;

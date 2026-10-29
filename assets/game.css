@@ -28,6 +28,14 @@ html{overflow:hidden;overscroll-behavior:none}
 .up__cost{font-size:.8rem;font-weight:600}
 .once{display:flex;flex-direction:column;gap:.4rem}
 .once .up{border-color:rgba(252,211,77,.55)}
+.dock{position:fixed;bottom:max(1.5rem,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:1;display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;width:max-content;max-width:calc(100vw - 1rem)}
+.dock .discord-btn{position:static;transform:none}
+.mc-btn{display:inline-flex;align-items:center;gap:.45rem;padding:.45rem 1rem;border:1px solid rgba(255,255,255,.18);border-radius:6px;background:rgba(255,255,255,.1);backdrop-filter:blur(8px);color:#fff;font:600 .85rem/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
+.mc-btn:hover{background:rgba(255,255,255,.18)}
+.mc-btn__dot{width:.6rem;height:.6rem;border-radius:50%;background:#9ca3af}
+.mc-btn[data-state="online"] .mc-btn__dot{background:#22c55e;box-shadow:0 0 8px #22c55e}
+.mc-btn[data-state="offline"] .mc-btn__dot{background:#ef4444}
+
 .shop__reset{margin-top:.25rem;padding:.35rem;border:0;background:none;color:rgba(255,255,255,.5);font:inherit;font-size:.75rem;cursor:pointer}
 .shop__reset:hover{color:#fff}
 
