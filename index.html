@@ -163,6 +163,25 @@
       -webkit-tap-highlight-color: transparent;
     }
     .logo-hit.is-shaking { animation: shake 0.4s ease-in-out; }
+
+    .reaction {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      z-index: 1;
+      font: 700 2.5rem/1 ui-monospace, Consolas, "Segoe UI Emoji", monospace;
+      color: #fff;
+      text-shadow: 0 0 16px rgba(109, 40, 217, 0.9);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 0);
+    }
+    .reaction.is-on { animation: reaction-pop 0.9s ease-out; }
+    @keyframes reaction-pop {
+      0%   { opacity: 0; transform: translate(-50%, 10px) scale(0.6); }
+      20%  { opacity: 1; transform: translate(-50%, -10px) scale(1.15); }
+      100% { opacity: 0; transform: translate(-50%, -70px) scale(1); }
+    }
     @keyframes shake {
       0%, 100% { transform: translate(0, 0) rotate(0); }
       15% { transform: translate(-8px, 3px) rotate(-5deg); }
@@ -198,6 +217,7 @@
     <div class="logo-hit" id="logo-hit">
       <img class="logo" src="images/Logo.png" alt="Chomicza Nora" draggable="false">
     </div>
+    <span class="reaction" id="reaction" aria-hidden="true"></span>
   </main>
 
   <a class="discord-btn" href="https://discord.com/invite/ChTAqW8yDv" target="_blank" rel="noopener">
@@ -205,7 +225,7 @@
     Discord
   </a>
 
-  <div class="secret">Ukryty napis</div>
+  <div class="secret">Jebać Timpa</div>
 
   <div class="egg" id="egg" role="status" aria-live="polite">Serwer Minecraft: wersja 31</div>
 
@@ -242,11 +262,16 @@
         'Brawo, odkryłeś sekret!'
       ];
       var hit = document.getElementById('logo-hit'), clicks = 0;
+      var reaction = document.getElementById('reaction');
+      var faces = ['😭', 'x_x', '😢', '😵', '>_<', 'T_T', '😖'];
       hit.addEventListener('click', function () {
         clicks++;
         hit.classList.remove('is-shaking');
+        reaction.classList.remove('is-on');
         void hit.offsetWidth;
         hit.classList.add('is-shaking');
+        reaction.textContent = faces[Math.floor(Math.random() * faces.length)];
+        reaction.classList.add('is-on');
         if (clicks % 5 === 0) toast(messages[Math.floor(Math.random() * messages.length)]);
       });
       hit.addEventListener('animationend', function () { hit.classList.remove('is-shaking'); });
