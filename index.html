@@ -130,6 +130,17 @@
       box-shadow: 0 0 24px rgba(88, 101, 242, 0.6);
     }
 
+    .secret {
+      position: fixed;
+      right: 0.75rem;
+      bottom: 0.5rem;
+      z-index: 1;
+      font: 0.7rem/1 ui-monospace, Consolas, monospace;
+      color: rgba(255, 255, 255, 0.04);
+      transition: color 0.4s;
+    }
+    .secret:hover { color: rgba(255, 255, 255, 0.7); }
+
     .egg {
       position: fixed;
       top: 1.5rem;
@@ -145,6 +156,21 @@
       transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .egg.is-visible { transform: translate(-50%, 0); }
+
+    .logo-hit {
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .logo-hit.is-shaking { animation: shake 0.4s ease-in-out; }
+    @keyframes shake {
+      0%, 100% { transform: translate(0, 0) rotate(0); }
+      15% { transform: translate(-8px, 3px) rotate(-5deg); }
+      30% { transform: translate(7px, -4px) rotate(4deg); }
+      45% { transform: translate(-6px, 2px) rotate(-3deg); }
+      60% { transform: translate(5px, -2px) rotate(3deg); }
+      80% { transform: translate(-3px, 1px) rotate(-1deg); }
+    }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; }
@@ -169,7 +195,9 @@
 
   <main class="logo-wrap">
     <h1 hidden>Chomicza Nora</h1>
-    <img class="logo" src="images/Logo.png" alt="Chomicza Nora">
+    <div class="logo-hit" id="logo-hit">
+      <img class="logo" src="images/Logo.png" alt="Chomicza Nora" draggable="false">
+    </div>
   </main>
 
   <a class="discord-btn" href="https://discord.com/invite/ChTAqW8yDv" target="_blank" rel="noopener">
@@ -177,21 +205,51 @@
     Discord
   </a>
 
+  <div class="secret">Ukryty napis</div>
+
   <div class="egg" id="egg" role="status" aria-live="polite">Serwer Minecraft: wersja 31</div>
 
   <script>
-    // Easter egg: wpisz "minecraft" na klawiaturze
     (function () {
-      var code = 'minecraft', typed = '', egg = document.getElementById('egg'), timer;
+      var egg = document.getElementById('egg'), timer;
+
+      function toast(text) {
+        egg.textContent = text;
+        egg.classList.add('is-visible');
+        clearTimeout(timer);
+        timer = setTimeout(function () { egg.classList.remove('is-visible'); }, 4000);
+      }
+
+      // Easter egg: wpisz "minecraft" na klawiaturze
+      var code = 'minecraft', typed = '';
       document.addEventListener('keydown', function (e) {
         if (e.key.length !== 1) return;
         typed = (typed + e.key.toLowerCase()).slice(-code.length);
         if (typed !== code) return;
         typed = '';
-        egg.classList.add('is-visible');
-        clearTimeout(timer);
-        timer = setTimeout(function () { egg.classList.remove('is-visible'); }, 4000);
+        toast('Serwer Minecraft: wersja 31');
       });
+
+      // Logo trzęsie się przy każdym kliknięciu, a co piąte pokazuje losowy napis
+      var messages = [
+        'Auu! To bolało.',
+        'Chomik uciekł do nory.',
+        'Nora jest zajęta.',
+        'Nie klikaj tak mocno!',
+        'Maszynownia działa. Chyba.',
+        'Sprawdziłeś już lodówkę?',
+        'Chomik ma już dość klikania.',
+        'Brawo, odkryłeś sekret!'
+      ];
+      var hit = document.getElementById('logo-hit'), clicks = 0;
+      hit.addEventListener('click', function () {
+        clicks++;
+        hit.classList.remove('is-shaking');
+        void hit.offsetWidth;
+        hit.classList.add('is-shaking');
+        if (clicks % 5 === 0) toast(messages[Math.floor(Math.random() * messages.length)]);
+      });
+      hit.addEventListener('animationend', function () { hit.classList.remove('is-shaking'); });
     })();
   </script>
 </body>
