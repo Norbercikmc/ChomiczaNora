@@ -444,7 +444,7 @@
   window.addEventListener("pagehide", save);
 
   // Status serwera Minecraft (publiczne API mcsrvstat.us)
-  var MC_HOST = "mc.chomiczanora.pl";
+  var MC_HOST = "chomiczanora.pl";
   var mcBtn = d.getElementById("mc");
   if (mcBtn) {
     var mcText = mcBtn.querySelector(".mc-btn__text");
