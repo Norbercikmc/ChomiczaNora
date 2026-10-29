@@ -3,6 +3,9 @@
 
   var d = document;
   var KEY = "chomicza-clicker-v1";
+  // Strona jest jednoekranowa: bez tego przeglądarka po przeładowaniu przywraca przesunięcie widoku
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  window.scrollTo(0, 0);
   var hit = d.getElementById("l");
   var wrap = d.querySelector(".logo-wrap");
   if (!hit || !wrap) return;
