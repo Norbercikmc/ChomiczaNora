@@ -26,9 +26,6 @@ Podstawową zasadą jest rozdzielenie produkcji, usług infrastrukturalnych, tes
 | i5-11400F | 32 GB RAM, GT 210 | Produkcyjne serwery gier |
 | Xeon E5-2690 v1 | 64 GB RAM | Backupy, magazyn danych, usługi infrastrukturalne i testy |
 | i7-8700 | 24 GB RAM, RTX 2070 Super 8 GB | Lokalny LLM i agent AI |
-| i5-4570 | 12 GB RAM | Monitoring i lekkie usługi |
-| FX-8300 | 16 GB RAM | Maszyna testowa uruchamiana na żądanie |
-| Pentium E5300 | 2 GB RAM | Opcjonalny host edukacyjny lub retro; nie jest krytyczny dla infrastruktury |
 
 Powyższy podział jest planem, a nie potwierdzeniem, że wszystkie maszyny muszą stale pracować. Pentium E5300 nie powinien być elementem krytycznym. i5-4570 i FX-8300 można uruchamiać zależnie od zapotrzebowania.
 
@@ -38,10 +35,8 @@ Znany stan sprzętu:
 
 - **i5-11400F:** SSD 120 GB, SSD 240 GB i HDD 1 TB — trzeba potwierdzić, które dyski są obecnie podłączone i jak są wykorzystywane;
 - **Xeon E5-2690:** SSD 128 GB i HDD 2 TB;
-- **i5-4570:** SSD 128 GB;
-- **FX-8300:** dysk do potwierdzenia;
 - **i7-8700:** HDD 1 TB, dysk systemowy do potwierdzenia;
-- **Pentium E5300:** dysk około 20 GB typu IDE/PATA.
+
 
 Przed instalacją należy wykonać spis dysków z numerami seryjnymi, pojemnością, SMART i przeznaczeniem. Nie wolno zakładać, że dysk o określonej pojemności można wyczyścić tylko dlatego, że był wcześniej używany przez Proxmox.
 
@@ -57,7 +52,6 @@ SSD 128 GB na Xeonie może być zbyt mały na system, maszyny wirtualne i repozy
 4. Nie kierujemy całego ruchu domowego przez OPNsense.
 5. WireGuard zapewnia zdalny dostęp do wybranych hostów i usług.
 6. VPS pozostaje punktem wejścia z Internetu dla wybranych usług.
-7. Sieć `10.20.0.0/24` nie jest przydzielana, dopóki nie zostanie opracowany nowy plan adresacji.
 
 ### 3.2. VPS
 
@@ -152,21 +146,6 @@ Dedykowana VM z Linuxem i Docker Compose, w której można uruchomić:
 RTX 2070 Super ma 8 GB VRAM, więc rozmiar modelu i kontekst trzeba dobrać do pamięci karty. Nie zakładamy, że dowolny duży model zmieści się w całości w VRAM.
 
 Agent AI nie otrzyma nieograniczonego dostępu root, kluczy SSH ani bezpośredniego dostępu do socketu Dockera. Operacje administracyjne powinny odbywać się przez jawnie dozwolone akcje z logowaniem.
-
-### i5-4570 — monitoring
-
-Lekka VM lub LXC z:
-
-- Uptime Kuma;
-- monitoringiem dostępności hostów;
-- eksportem metryk;
-- powiadomieniami.
-
-Nie umieszczamy na tym hoście jedynej kopii ważnych danych ani krytycznych elementów wymaganych do odzyskania całej infrastruktury.
-
-### FX-8300 i Pentium E5300
-
-FX-8300 będzie środowiskiem do testowania nowych usług i konfiguracji. Pentium pozostaje opcjonalnym hostem edukacyjnym. Żaden z nich nie jest wymagany do działania produkcyjnego Minecrafta, VPN lub backupów.
 
 ## 6. Przebudowa VPS
 
