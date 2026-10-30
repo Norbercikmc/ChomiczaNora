@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://api.chomiczanora.pl https://api.mcsrvstat.us; base-uri 'none'; form-action 'none'">
+  <title>Panel — Chomicza Nora</title>
+  <link rel="icon" type="image/png" href="../images/Logo.png">
+  <link rel="stylesheet" href="admin.css?v=1">
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <img src="../images/Logo.png" alt="" width="40" height="40">
+      <h1>Panel administracyjny</h1>
+      <button type="button" id="logout" class="ghost" hidden>Wyloguj</button>
+    </header>
+
+    <section id="login" class="card">
+      <h2>Logowanie</h2>
+      <p class="muted">Podaj token ustawiony na VPS w <code>RANKING_ADMIN_TOKEN</code>. Token jest pamiętany tylko do zamknięcia karty.</p>
+      <form id="login-form" class="row">
+        <input id="token" type="password" autocomplete="current-password" placeholder="Token" required minlength="24" aria-label="Token">
+        <button type="submit">Zaloguj</button>
+      </form>
+      <p id="login-msg" class="msg" role="alert"></p>
+    </section>
+
+    <div id="app" hidden>
+      <section class="card">
+        <div class="head">
+          <h2>Status</h2>
+          <button type="button" id="refresh-status" class="ghost">Odśwież</button>
+        </div>
+        <dl id="status" class="grid"></dl>
+      </section>
+
+      <section class="card">
+        <div class="head">
+          <h2>Ranking <span id="count" class="muted"></span></h2>
+          <button type="button" id="refresh-scores" class="ghost">Odśwież</button>
+        </div>
+        <input id="filter" type="search" placeholder="Szukaj nicku lub ID" aria-label="Szukaj">
+        <p id="scores-msg" class="msg" role="status"></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Nick</th><th>Wynik</th><th>ID</th><th>Akcje</th></tr></thead>
+            <tbody id="scores"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Bany</h2>
+        <ul id="bans" class="list"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Zapis gry w tej przeglądarce</h2>
+        <p class="muted">Dotyczy tylko Twojej przeglądarki. Przed importem lub resetem zamknij kartę z grą, inaczej nadpisze zmiany.</p>
+        <div class="row wrap-row">
+          <button type="button" id="save-export" class="ghost">Pokaż zapis</button>
+          <button type="button" id="save-copy" class="ghost">Kopiuj</button>
+          <button type="button" id="save-import">Importuj z pola</button>
+          <button type="button" id="save-reset" class="danger">Usuń zapis</button>
+        </div>
+        <textarea id="save-box" rows="5" spellcheck="false" aria-label="Zapis gry (JSON)"></textarea>
+        <p id="save-msg" class="msg" role="status"></p>
+      </section>
+    </div>
+  </main>
+  <script src="admin.js?v=1"></script>
+</body>
+</html>

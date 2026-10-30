@@ -1,0 +1,33 @@
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#0b0a16;color:#e5e7eb;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.top{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem}
+.top h1{flex:1;margin:0;font-size:1.4rem}
+.card{margin-bottom:1rem;padding:1rem 1.25rem;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04)}
+.card h2{margin:0 0 .6rem;font-size:1.1rem}
+.head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.muted{color:#9ca3af;font-weight:400}
+.msg{min-height:1.4em;margin:.5rem 0 0;color:#fcd34d}
+.row{display:flex;gap:.5rem}
+.wrap-row{flex-wrap:wrap;margin-bottom:.5rem}
+input,textarea{width:100%;padding:.55rem .7rem;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(255,255,255,.06);color:#fff;font:inherit}
+textarea{font-family:ui-monospace,Consolas,monospace;font-size:.8rem;resize:vertical}
+.row input{flex:1}
+button{padding:.5rem .9rem;border:0;border-radius:8px;background:#5865F2;color:#fff;font:inherit;font-weight:600;white-space:nowrap;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+button.ghost{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08)}
+button.danger{background:#b91c1c}
+code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:.85em}
+.grid{display:grid;grid-template-columns:max-content 1fr;gap:.35rem 1rem;margin:0}
+.grid dt{color:#9ca3af}
+.grid dd{margin:0;font-weight:600}
+.grid dd.ok{color:#4ade80}
+.grid dd.bad{color:#f87171}
+.table-wrap{margin-top:.5rem;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:.45rem .5rem;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:middle}
+th{color:#9ca3af;font-weight:600}
+td.actions{display:flex;flex-wrap:wrap;gap:.35rem}
+td.actions button{padding:.3rem .6rem;font-size:.8rem}
+.list{margin:0;padding:0;list-style:none}
+.list li{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.08)}
