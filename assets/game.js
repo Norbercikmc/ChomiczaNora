@@ -255,11 +255,16 @@
     var sum = UPGRADES.reduce(function (a, u) { return a + (u.cps || 0) * count(u) * buildingMult(u); }, 0);
     return sum * globalMult() * eventCpsMult() * achMult() * seedMult();
   }
+  function clickParts() {
+    return {
+      base: UPGRADES.reduce(function (a, u) { return a + (u.click || 0) * count(u); }, 1),
+      mult: ONCE.reduce(function (a, o) { return a * (bought(o) && o.clickMult ? o.clickMult : 1); }, 1),
+      pct: ONCE.reduce(function (a, o) { return a + (bought(o) && o.clickPct ? o.clickPct : 0); }, 0)
+    };
+  }
   function perClick() {
-    var base = UPGRADES.reduce(function (a, u) { return a + (u.click || 0) * count(u); }, 1);
-    var mult = ONCE.reduce(function (a, o) { return a * (bought(o) && o.clickMult ? o.clickMult : 1); }, 1);
-    var pct = ONCE.reduce(function (a, o) { return a + (bought(o) && o.clickPct ? o.clickPct : 0); }, 0);
-    return base * mult * eventClickMult() * seedMult() + perSecond() * pct;
+    var p = clickParts();
+    return p.base * p.mult * eventClickMult() * seedMult() + perSecond() * p.pct;
   }
 
   function el(tag, cls, text) {
@@ -756,6 +761,110 @@
     if (view === "pass") renderPass();
   }
 
+  // Balans: rozbicie mnożników, czasy zwrotu i rekomendacja zakupu
+  var balToggle = el("button", "shop__toggle", "⚖️");
+  balToggle.type = "button";
+  balToggle.setAttribute("aria-label", "Balans");
+  balToggle.setAttribute("aria-controls", "shop-bal");
+  tabs.insertBefore(balToggle, passToggle.nextSibling);
+  var balPanel = el("div", "shop__list");
+  balPanel.id = "shop-bal";
+  var balBox = el("div", "bal");
+  balPanel.appendChild(balBox);
+  shop.appendChild(balPanel);
+
+  function rate(n) { return n < 100 ? n.toLocaleString("pl-PL", { maximumFractionDigits: 1 }) : fmt(n); }
+  function mx(n) { return "×" + n.toLocaleString("pl-PL", { maximumFractionDigits: 2 }); }
+  function dur(s) {
+    if (!isFinite(s)) return "—";
+    if (s < 60) return Math.ceil(s) + " s";
+    if (s < 3600) return Math.ceil(s / 60) + " min";
+    var u = s < 86400 ? [3600, " h"] : [86400, " dni"];
+    return (s / u[0]).toLocaleString("pl-PL", { maximumFractionDigits: 1 }) + u[1];
+  }
+
+  function renderBalance() {
+    var cps = perSecond();
+    var gm = globalMult() * eventCpsMult() * achMult() * seedMult();
+    balBox.textContent = "";
+    function section(title) {
+      balBox.appendChild(el("h3", "", title));
+      var dl = el("dl", "stats");
+      balBox.appendChild(dl);
+      return dl;
+    }
+    function line(dl, k, v) { dl.appendChild(el("dt", "", k)); dl.appendChild(el("dd", "", v)); }
+
+    var dl = section("Mnożniki produkcji");
+    var fxm = Date.now() < fx.cpsUntil ? fx.cps : 1;
+    line(dl, "Ulepszenia globalne", mx(globalMult()));
+    line(dl, "Osiągnięcia (" + Object.keys(state.ach).length + ")", mx(achMult()));
+    line(dl, "Złote nasiona (" + state.seeds + ")", mx(seedMult()));
+    line(dl, "Gracze MC (" + mcPlayers + ")", mx(1 + 0.1 * mcPlayers));
+    line(dl, "Sezon", SEASON ? mx(SEASON.cps) : "—");
+    line(dl, "Szał z eventu", fxm > 1 ? mx(fxm) : "—");
+    line(dl, "Awaria", fx.outage ? "×0,5" : "—");
+    line(dl, "Razem", mx(gm));
+    line(dl, "Produkcja", rate(cps) + "/s");
+
+    var cp = clickParts();
+    dl = section("Klikanie");
+    line(dl, "Podstawa (łapki)", fmt(cp.base));
+    line(dl, "Ulepszenia", mx(cp.mult));
+    line(dl, "Szał i nasiona", mx(eventClickMult() * seedMult()));
+    line(dl, "Z produkcji", cp.pct ? "+" + Math.round(cp.pct * 100) + "% z " + rate(cps) + "/s" : "—");
+    line(dl, "Razem", rate(perClick()) + " / klik");
+
+    // Najlepszy zwrot: koszt podzielony przez przyrost produkcji z zakupu
+    var best = null;
+    function consider(name, c, gain) {
+      if (!(gain > 0)) return;
+      var pay = c / gain;
+      if (!best || pay < best.pay) best = { name: name, pay: pay, cost: c };
+    }
+
+    balBox.appendChild(el("h3", "", "Budynki"));
+    var tbl = el("div", "bal__rows");
+    UPGRADES.forEach(function (u) {
+      if (!u.cps) return;
+      var n = count(u), unit = u.cps * buildingMult(u) * gm, c = cost(u);
+      consider(u.name, c, unit);
+      var r = el("div", "bal__row");
+      r.appendChild(el("span", "bal__name", u.icon + " " + u.name + (n ? " ×" + n : "")));
+      r.appendChild(el("span", "bal__pay", dur(c / unit)));
+      r.appendChild(el("span", "bal__sub", (n ? rate(n * unit) + "/s (" + (cps ? Math.round(n * unit / cps * 100) : 0) + "%)" : "brak") + " · +" + rate(unit) + "/s za sztukę"));
+      tbl.appendChild(r);
+    });
+    balBox.appendChild(tbl);
+
+    ONCE.forEach(function (o) {
+      if (bought(o) || !o.ok()) return;
+      if (o.target) {
+        var u = UPGRADES.filter(function (x) { return x.id === o.target; })[0];
+        consider(o.name, o.cost, count(u) * u.cps * buildingMult(u) * gm * (o.mult - 1));
+      } else if (o.global) {
+        consider(o.name, o.cost, cps * (o.global - 1));
+      }
+    });
+
+    dl = section("Rekomendacja");
+    line(dl, "Najszybszy zwrot", best ? best.name : "—");
+    line(dl, "Zwraca się po", best ? dur(best.pay) : "—");
+    line(dl, "Stać cię za", !best ? "—" : state.nuts >= best.cost ? "teraz" : cps ? dur((best.cost - state.nuts) / cps) : "—");
+
+    dl = section("Prestiż");
+    var sg = seedGain();
+    line(dl, "Złote nasiona", state.seeds + " (+" + state.seeds * 3 + "%)");
+    line(dl, "Za przeprowadzkę teraz", sg >= 1 ? "+" + sg : "—");
+    line(dl, "Następne nasiono przy", fmt(1e6 * Math.pow(sg + 1, 3)) + " w norze");
+
+    dl = section("Gamba (zwrot ze stawki)");
+    GAMES.forEach(function (g) {
+      var ev = g.outcomes.reduce(function (a, o) { return a + o[0] * o[1]; }, 0);
+      line(dl, g.name, (ev * 100).toLocaleString("pl-PL", { maximumFractionDigits: 1 }) + "%");
+    });
+  }
+
   // Dźwięki generowane przez Web Audio, domyślnie wyłączone
   var soundOn = false;
   try { soundOn = localStorage.getItem(KEY + "-sound") === "1"; } catch (e) { /* brak storage */ }
@@ -814,6 +923,9 @@
     achPanel.hidden = v !== "ach";
     statsPanel.hidden = v !== "stats";
     passPanel.hidden = v !== "pass";
+    balPanel.hidden = v !== "bal";
+    balToggle.setAttribute("aria-expanded", String(v === "bal"));
+    if (v === "bal") renderBalance();
     passToggle.setAttribute("aria-expanded", String(v === "pass"));
     if (v === "pass") renderPass();
     statsToggle.setAttribute("aria-expanded", String(v === "stats"));
@@ -831,6 +943,7 @@
   achToggle.addEventListener("click", function () { setView(view === "ach" ? null : "ach"); });
   statsToggle.addEventListener("click", function () { setView(view === "stats" ? null : "stats"); });
   passToggle.addEventListener("click", function () { setView(view === "pass" ? null : "pass"); });
+  balToggle.addEventListener("click", function () { setView(view === "bal" ? null : "bal"); });
   setView(window.matchMedia("(min-width: 800px)").matches ? "up" : null);
 
   function buy(u) {
@@ -1145,6 +1258,7 @@
     }
     if (view === "stats" && !d.hidden) renderStats();
     if (view === "pass" && !d.hidden) renderPass();
+    if (view === "bal" && !d.hidden) renderBalance();
     if (d.hidden || Date.now() < nextEvent) return;
     nextEvent = Date.now() + 120000 + Math.random() * 180000;
     var pool = [[spawnGolden, 5], [spawnHamster, 3]];
@@ -1202,55 +1316,20 @@
   d.addEventListener("visibilitychange", function () { if (d.hidden) save(); });
   window.addEventListener("pagehide", save);
 
-  // Status serwera Minecraft (publiczne API mcsrvstat.us)
-  var MC_HOST = "chomiczanora.pl";
-  // Status z mc.*, bo domena główna nie ma jeszcze rekordu SRV _minecraft._tcp
-  var MC_QUERY = "mc.chomiczanora.pl";
-  var mcBtn = d.getElementById("mc");
-  if (mcBtn) {
-    var mcText = mcBtn.querySelector(".mc-btn__text");
-    var mcLabel = "Minecraft";
-    var mcStatus = function () {
-      fetch("https://api.mcsrvstat.us/3/" + MC_QUERY, { cache: "no-store" })
-        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then(function (j) {
-          if (j && j.online) {
-            var p = j.players || {};
-            mcBtn.dataset.state = "online";
-            mcPlayers = Math.max(0, Math.min(20, Math.floor(Number(p.online) || 0)));
-            mcLabel = "Minecraft " + Number(p.online || 0) + "/" + Number(p.max || 0);
-            mcBtn.title = (j.version ? "Wersja: " + String(j.version) + ". " : "") + "Kliknij, aby skopiować adres serwera";
-          } else {
-            mcBtn.dataset.state = "offline";
-            mcPlayers = 0;
-            mcLabel = "Minecraft offline";
-          }
-          mcText.textContent = mcLabel;
-          render();
-        })
-        .catch(function () {
-          mcBtn.dataset.state = "unknown";
-          mcPlayers = 0;
-          mcLabel = "Minecraft";
-          mcText.textContent = mcLabel;
-        });
-    };
-    mcBtn.addEventListener("click", function () {
-      if (!navigator.clipboard) return;
-      navigator.clipboard.writeText(MC_HOST).then(function () {
-        mcText.textContent = "Skopiowano: " + MC_HOST;
-        setTimeout(function () { mcText.textContent = mcLabel; }, 1800);
-      }).catch(function () { /* brak uprawnień schowka */ });
-    });
-    mcStatus();
-    setInterval(mcStatus, 60000);
+  // Status Minecrafta dostarcza page.js (zdarzenie cn:mc)
+  function syncMc() {
+    var m = window.cnMc;
+    mcPlayers = m && m.online ? Math.max(0, Math.min(20, Math.floor(Number(m.players) || 0))) : 0;
+    render();
   }
-  // Wykrywanie nowej wersji: index.html z serwera wskazuje aktualny ?v= dla game.js
+  d.addEventListener("cn:mc", syncMc);
+  syncMc();
+  // Wykrywanie nowej wersji: index.html z serwera wskazuje aktualny ?v= dla page.js (= game.js)
   function remoteBuild() {
     return fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
       .then(function (t) {
-        var m = /assets\/game\.js\?v=([\w.-]+)/.exec(t);
+        var m = /assets\/page\.js\?v=([\w.-]+)/.exec(t);
         return m ? m[1] : null;
       });
   }
@@ -1304,6 +1383,28 @@
   window.addEventListener("focus", checkUpdate);
   setInterval(checkUpdate, 60000);
   checkUpdate();
+
+  // Panel chowa się po 15 s bez aktywności i wraca przy ruchu myszy, dotyku lub klawiszu
+  var IDLE_MS = 15000;
+  var idleT = 0, lastWake = 0;
+  function sleepPanel() {
+    var a = d.activeElement;
+    var typing = a && shop.contains(a) && /^(INPUT|TEXTAREA)$/.test(a.tagName);
+    if (typing || busy) { idleT = setTimeout(sleepPanel, 5000); return; }
+    shop.classList.add("is-idle");
+  }
+  function wakePanel() {
+    var t = Date.now();
+    if (t - lastWake < 500 && !shop.classList.contains("is-idle")) return;
+    lastWake = t;
+    shop.classList.remove("is-idle");
+    clearTimeout(idleT);
+    idleT = setTimeout(sleepPanel, IDLE_MS);
+  }
+  ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"].forEach(function (ev) {
+    window.addEventListener(ev, wakePanel, { passive: true });
+  });
+  wakePanel();
 
   // Zysk z nieobecności: 50% produkcji, maks. 8 godzin
   var away = state.last ? Math.min(8 * 3600, (Date.now() - state.last) / 1000) : 0;
