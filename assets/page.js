@@ -1,6 +1,12 @@
 (function () {
   "use strict";
 
+  // Ranking działa tylko przez HTTPS (CORS), więc wersję http przekierowujemy na https
+  if (location.protocol === "http:" && /(^|\.)chomiczanora\.pl$/.test(location.hostname)) {
+    location.replace("https://" + location.host + location.pathname + location.search + location.hash);
+    return;
+  }
+
   var GAME_NAME = "Chomicze Orzeszki";
   var PLAY_KEY = "chomicza-clicker-v1-play";
   var SAVE_KEY = "chomicza-clicker-v1";

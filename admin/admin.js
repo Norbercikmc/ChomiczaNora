@@ -1,6 +1,11 @@
 (function () {
   "use strict";
 
+  if (location.protocol === "http:" && /(^|\.)chomiczanora\.pl$/.test(location.hostname)) {
+    location.replace("https://" + location.host + location.pathname + location.search + location.hash);
+    return;
+  }
+
   var API = "https://api.chomiczanora.pl";
   var MC_QUERY = "mc.chomiczanora.pl";
   var MC_PUBLIC = "chomiczanora.pl";
@@ -113,6 +118,8 @@
       var nickCell = el("td", nick);
       tr.appendChild(nickCell);
       tr.appendChild(el("td", nf.format(Number(s.score) || 0)));
+      var gw = Number(s.gw) || 0, gl = Number(s.gl) || 0;
+      tr.appendChild(el("td", gw || gl ? "+" + nf.format(gw) + " / −" + nf.format(gl) : "—", "mono"));
       var idCell = el("td", id.slice(0, 8) + "…", "mono");
       idCell.title = id;
       tr.appendChild(idCell);
@@ -139,7 +146,7 @@
     if (!tb.children.length) {
       var tr = d.createElement("tr");
       var td = el("td", scores.length ? "Brak wyników dla filtra." : "Ranking jest pusty.", "muted");
-      td.colSpan = 6;
+      td.colSpan = 7;
       tr.appendChild(td);
       tb.appendChild(tr);
     }

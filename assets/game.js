@@ -104,7 +104,7 @@
     return t.getFullYear() + "-" + ("0" + (t.getMonth() + 1)).slice(-2);
   }
 
-  function fresh() { return { nuts: 0, total: 0, run: 0, seeds: 0, owned: {}, ups: {}, ach: {}, stats: {}, last: 0, pass: { id: passId(), xp: 0, claimed: 0 } }; }
+  function fresh() { return { nuts: 0, total: 0, run: 0, seeds: 0, owned: {}, ups: {}, ach: {}, stats: {}, last: 0, gamba: { bets: 0, won: 0, lost: 0, bigWin: 0, bigLoss: 0 }, pass: { id: passId(), xp: 0, claimed: 0 } }; }
   function bump(k) { state.stats[k] = (state.stats[k] || 0) + 1; }
   function achMult() { return 1 + 0.01 * Object.keys(state.ach).length; }
   function seedMult() { return 1 + 0.03 * state.seeds; }
@@ -226,6 +226,12 @@
       if (raw && isFinite(raw.last) && raw.last > 0) s.last = raw.last;
       s.run = raw && isFinite(raw.run) && raw.run >= 0 ? Math.min(raw.run, s.total) : s.total;
       if (raw && Number.isInteger(raw.seeds) && raw.seeds > 0) s.seeds = raw.seeds;
+      var gs = raw && raw.gamba;
+      if (gs) {
+        ["bets", "won", "lost", "bigWin", "bigLoss"].forEach(function (k) {
+          if (isFinite(gs[k]) && gs[k] >= 0) s.gamba[k] = gs[k];
+        });
+      }
       var p = raw && raw.pass;
       if (p && p.id === passId() && isFinite(p.xp) && p.xp >= 0) {
         s.pass.xp = Math.min(PASS_LEVELS * PASS_XP, p.xp);
@@ -373,6 +379,7 @@
   var playerId = loadId();
   var nick = "";
   var lastSent = -1;
+  var lastGk = "";
   var view = null;
   try { nick = localStorage.getItem(NICK_KEY) || ""; } catch (e) { /* brak storage */ }
   if (!NICK_RE.test(nick)) nick = "";
@@ -403,9 +410,12 @@
   nickBtn.type = "button";
   nickRow.appendChild(nickInput);
   nickRow.appendChild(nickBtn);
+  var saveMsg = el("p", "board__msg", nick ? "Grasz jako " + nick + "." : "Ustaw nick, aby Twój wynik trafił do rankingu.");
+  saveMsg.setAttribute("role", "status");
   board.appendChild(boardMsg);
   board.appendChild(boardList);
   board.appendChild(nickRow);
+  board.appendChild(saveMsg);
 
   function refreshBoard() {
     fetch(API, { cache: "no-store" })
@@ -425,34 +435,42 @@
 
   function submitScore() {
     var total = Math.floor(state.total);
-    if (stale || !nick || total <= lastSent) return;
+    var gw = Math.floor(state.gamba.won), gl = Math.floor(state.gamba.lost), gk = gw + ":" + gl;
+    if (stale || !nick || (total <= lastSent && gk === lastGk)) return;
     lastSent = total;
+    lastGk = gk;
     fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: playerId, nick: nick, score: total, build: BUILD })
+      body: JSON.stringify({ id: playerId, nick: nick, score: total, gw: gw, gl: gl, build: BUILD })
     }).then(function (r) {
       if (r.status === 426) { markStale(); return; }
       if (r.status === 409) {
-        boardMsg.textContent = "Ten nick jest już zajęty.";
+        saveMsg.textContent = "Ten nick jest już zajęty — wybierz inny.";
         nick = "";
         lastSent = -1;
         return;
       }
+      if (r.status === 403) { saveMsg.textContent = "Ten gracz został zablokowany w rankingu."; return; }
       if (!r.ok) throw new Error(r.status);
+      saveMsg.textContent = "✔ Zapisano wynik: " + fmt(total) + " (" + nick + ")";
       if (view === "board") refreshBoard();
-    }).catch(function () { lastSent = -1; });
+    }).catch(function () {
+      lastSent = -1;
+      saveMsg.textContent = "Nie udało się zapisać wyniku — spróbuję ponownie za chwilę.";
+    });
   }
 
   nickBtn.addEventListener("click", function () {
     var v = nickInput.value.trim();
     if (!NICK_RE.test(v)) {
-      boardMsg.textContent = "Nick: 2–16 znaków (litery, cyfry, spacja, _ . -).";
+      saveMsg.textContent = "Nick: 2–16 znaków (litery, cyfry, spacja, _ . -).";
       return;
     }
     nick = v;
     try { localStorage.setItem(NICK_KEY, v); } catch (e) { /* brak storage */ }
     lastSent = -1;
+    saveMsg.textContent = "Zapisuję…";
     submitScore();
   });
 
@@ -461,13 +479,15 @@
 
   // Gamba: tylko wirtualne orzeszki, wygrane nie liczą się do rankingu (state.total)
   var GAMES = [
-    { kind: "coin", icon: "🪙", name: "Rzut monetą", desc: "48% szans na ×2", outcomes: [[0.48, 2], [0.52, 0]] },
-    // Te same szanse co wcześniej (×0 58%, ×1 15%, ×2 15%, ×3 10%, ×10 2%), rozłożone na wycinki koła
-    { kind: "wheel", icon: "🎡", name: "Koło chomika", desc: "×0 / ×1 / ×2 / ×3 / ×10", outcomes: [
-      [0.145, 0], [0.075, 1], [0.075, 2], [0.145, 0], [0.05, 3], [0.02, 10],
-      [0.145, 0], [0.075, 1], [0.075, 2], [0.145, 0], [0.05, 3]
+    { kind: "coin", icon: "🪙", name: "Rzut monetą", desc: "45% szans na ×2", outcomes: [[0.45, 2], [0.55, 0]] },
+    // Zwrot ze stawki ok. 90% (×0 60%, ×1 14%, ×2 15%, ×3 7%, ×5 3%, ×10 1%), rozożone na wycinki koła
+    { kind: "wheel", icon: "🎡", name: "Koło chomika", desc: "×0 / ×1 / ×2 / ×3 / ×5 / ×10", outcomes: [
+      [0.15, 0], [0.07, 1], [0.075, 2], [0.15, 0], [0.035, 3], [0.03, 5],
+      [0.15, 0], [0.07, 1], [0.075, 2], [0.15, 0], [0.035, 3], [0.01, 10]
     ] }
   ];
+  // Limit stawki: 15 min produkcji (min. 1 000), żeby gamba nie była drogą na skróty przy dużych bankrollach
+  function maxBet() { return Math.max(1000, Math.floor(perSecond() * 900)); }
   var gamble = el("div", "shop__list gamble");
   gamble.id = "shop-gamble";
   var gambleMsg = el("p", "board__msg", "Postaw orzeszki i spróbuj szczęścia.");
@@ -478,17 +498,19 @@
   betInput.value = "10";
   betInput.setAttribute("aria-label", "Stawka");
   var quick = el("div", "board__row");
-  [["10%", 0.1], ["50%", 0.5], ["Wszystko", 1]].forEach(function (q) {
+  [["10%", 0.1], ["50%", 0.5], ["Maks.", 1]].forEach(function (q) {
     var qb = el("button", "board__save", q[0]);
     qb.type = "button";
     qb.addEventListener("click", function () {
-      betInput.value = Math.max(1, Math.floor(state.nuts * q[1]));
+      betInput.value = Math.max(1, Math.min(maxBet(), Math.floor(state.nuts * q[1])));
     });
     quick.appendChild(qb);
   });
+  var betHint = el("p", "board__msg", "");
   gamble.appendChild(gambleMsg);
   gamble.appendChild(betInput);
   gamble.appendChild(quick);
+  gamble.appendChild(betHint);
 
   var stage = el("div", "gstage");
   stage.setAttribute("aria-hidden", "true");
@@ -503,7 +525,59 @@
   stage.appendChild(wheelBox);
   gamble.appendChild(stage);
 
-  var WHEEL_COLORS = { 0: "#374151", 1: "#3b82f6", 2: "#22c55e", 3: "#a855f7", 10: "#f59e0b" };
+  // Statystyki gamby: własne (z zapisu) i globalne (serwer rankingu)
+  var gStatsHead = el("h3", "gh", "Twoje statystyki");
+  var gStats = el("dl", "stats");
+  var gTopHead = el("h3", "gh", "Najwięcej wygrał");
+  var gWonList = el("ol", "board__list");
+  var gLostHead = el("h3", "gh", "Najwięcej przegrał");
+  var gLostList = el("ol", "board__list");
+  [gStatsHead, gStats, gTopHead, gWonList, gLostHead, gLostList].forEach(function (n) { gamble.appendChild(n); });
+
+  function renderGambaStats() {
+    var g = state.gamba, net = g.won - g.lost;
+    var rows = [
+      ["Rozegrane gry", fmt(g.bets)],
+      ["Wygrane łącznie", "+" + fmt(g.won)],
+      ["Przegrane łącznie", "−" + fmt(g.lost)],
+      ["Bilans", (net >= 0 ? "+" : "−") + fmt(Math.abs(net))],
+      ["Największa wygrana", g.bigWin ? "+" + fmt(g.bigWin) : "—"],
+      ["Największa przegrana", g.bigLoss ? "−" + fmt(g.bigLoss) : "—"]
+    ];
+    gStats.textContent = "";
+    rows.forEach(function (r) {
+      gStats.appendChild(el("dt", "", r[0]));
+      gStats.appendChild(el("dd", "", r[1]));
+    });
+  }
+
+  function fillTop(ol, rows, sign) {
+    ol.textContent = "";
+    if (!rows.length) { ol.appendChild(el("li", "board__item", "Brak danych")); return; }
+    rows.forEach(function (row) {
+      var li = el("li", "board__item");
+      li.appendChild(el("span", "board__name", String(row.nick)));
+      li.appendChild(el("span", "board__score", sign + fmt(Number(row.amount) || 0)));
+      ol.appendChild(li);
+    });
+  }
+
+  function refreshGamba() {
+    fetch(API.replace(/\/scores$/, "/gamba"), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) {
+        fillTop(gWonList, Array.isArray(j.won) ? j.won : [], "+");
+        fillTop(gLostList, Array.isArray(j.lost) ? j.lost : [], "−");
+      })
+      .catch(function () {
+        gWonList.textContent = "";
+        gLostList.textContent = "";
+        gWonList.appendChild(el("li", "board__item", "Ranking gamby jest niedostępny"));
+      });
+  }
+  renderGambaStats();
+
+  var WHEEL_COLORS = { 0: "#374151", 1: "#3b82f6", 2: "#22c55e", 3: "#a855f7", 5: "#ef4444", 10: "#f59e0b" };
   var stops = [], deg = 0;
   GAMES[1].outcomes.forEach(function (o) {
     var w = o[0] * 360;
@@ -522,6 +596,7 @@
     var bet = Math.floor(Number(betInput.value));
     if (!isFinite(bet) || bet < 1) { gambleMsg.textContent = "Podaj stawkę (min. 1)."; return; }
     if (bet > Math.floor(state.nuts)) { gambleMsg.textContent = "Nie masz tylu orzeszków."; return; }
+    if (bet > maxBet()) { gambleMsg.textContent = "Maksymalna stawka to " + fmt(maxBet()) + " (15 min produkcji)."; return; }
     busy = true;
     state.nuts -= bet;
     render();
@@ -571,6 +646,15 @@
   }
 
   function finishBet(bet, mult) {
+    var gs = state.gamba;
+    gs.bets++;
+    if (mult > 1) {
+      gs.won += bet * (mult - 1);
+      gs.bigWin = Math.max(gs.bigWin, bet * (mult - 1));
+    } else if (mult === 0) {
+      gs.lost += bet;
+      gs.bigLoss = Math.max(gs.bigLoss, bet);
+    }
     if (mult === 10) { bump("jackpot"); confetti(); }
     if (mult === 0 && state.nuts < 1 && bet >= 1000) bump("broke");
     sfx(mult > 1 ? "win" : mult === 0 ? "lose" : "buy");
@@ -581,6 +665,8 @@
     busy = false;
     save();
     render();
+    renderGambaStats();
+    submitScore();
   }
   GAMES.forEach(function (g) {
     var b = el("button", "up");
@@ -920,6 +1006,7 @@
     list.hidden = v !== "up";
     board.hidden = v !== "board";
     gamble.hidden = v !== "gamble";
+    if (v === "gamble") { renderGambaStats(); refreshGamba(); }
     achPanel.hidden = v !== "ach";
     statsPanel.hidden = v !== "stats";
     passPanel.hidden = v !== "pass";
@@ -975,6 +1062,7 @@
       ? cps.toLocaleString("pl-PL", { maximumFractionDigits: 1 }) + " na sekundę"
       : "kliknij logo!";
     d.title = fmt(n) + " orzeszków — Chomicza Nora";
+    betHint.textContent = "Maks. stawka: " + fmt(maxBet()) + " (15 min produkcji, min. 1 tys.)";
 
     var t = Date.now(), parts = [];
     if (t < fx.cpsUntil) parts.push("✨ ×" + fx.cps + " produkcji (" + Math.ceil((fx.cpsUntil - t) / 1000) + " s)");

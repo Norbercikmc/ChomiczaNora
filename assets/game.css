@@ -84,6 +84,7 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .pass__bar{height:8px;margin:.1rem .2rem .3rem;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}
 .pass__fill{height:100%;background:linear-gradient(90deg,#a855f7,#fcd34d);transition:width .3s}
 .board__save:disabled{opacity:.45;cursor:not-allowed}
+.gh{margin:.6rem .3rem .2rem;font-size:.8rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#fcd34d}
 .gstage{display:flex;align-items:center;justify-content:space-around;gap:.5rem;padding:.6rem 0 .3rem;perspective:600px}
 .coin{position:relative;width:72px;height:72px;transform-style:preserve-3d}
 .coin__face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:3px solid #fcd34d;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b 60%,#b45309);font-size:2rem;backface-visibility:hidden;-webkit-backface-visibility:hidden}
