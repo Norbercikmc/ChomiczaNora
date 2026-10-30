@@ -86,10 +86,18 @@
     { id: "sea", icon: "🎃", name: "Sezonowiec", desc: "Graj podczas eventu sezonowego", ok: function () { return !!SEASON; } },
     { id: "p1", icon: "🌱", name: "Nowy początek", desc: "Przeprowadź norę", ok: stat("prestige", 1) },
     { id: "p5", icon: "🧳", name: "Wędrowny chomik", desc: "Przeprowadź norę 5 razy", ok: stat("prestige", 5) },
-    { id: "hr", icon: "⏰", name: "Jeszcze jedno kliknięcie", desc: "Graj przez godzinę", ok: stat("time", 3600) }
+    { id: "hr", icon: "⏰", name: "Jeszcze jedno kliknięcie", desc: "Graj przez godzinę", ok: stat("time", 3600) },
+    { id: "pass", icon: "🎟️", name: "Karnet ukończony", desc: "Odbierz wszystkie nagrody z karnetu", ok: function () { return state.pass.claimed >= PASS_LEVELS; } }
   ];
 
-  function fresh() { return { nuts: 0, total: 0, run: 0, seeds: 0, owned: {}, ups: {}, ach: {}, stats: {}, last: 0 }; }
+  // Karnet miesięczny: XP za grę, nagrody co poziom, reset z początkiem miesiąca
+  var PASS_LEVELS = 30, PASS_XP = 100;
+  function passId() {
+    var t = new Date();
+    return t.getFullYear() + "-" + ("0" + (t.getMonth() + 1)).slice(-2);
+  }
+
+  function fresh() { return { nuts: 0, total: 0, run: 0, seeds: 0, owned: {}, ups: {}, ach: {}, stats: {}, last: 0, pass: { id: passId(), xp: 0, claimed: 0 } }; }
   function bump(k) { state.stats[k] = (state.stats[k] || 0) + 1; }
   function achMult() { return 1 + 0.01 * Object.keys(state.ach).length; }
   function seedMult() { return 1 + 0.03 * state.seeds; }
@@ -161,6 +169,11 @@
       if (raw && isFinite(raw.last) && raw.last > 0) s.last = raw.last;
       s.run = raw && isFinite(raw.run) && raw.run >= 0 ? Math.min(raw.run, s.total) : s.total;
       if (raw && Number.isInteger(raw.seeds) && raw.seeds > 0) s.seeds = raw.seeds;
+      var p = raw && raw.pass;
+      if (p && p.id === passId() && isFinite(p.xp) && p.xp >= 0) {
+        s.pass.xp = Math.min(PASS_LEVELS * PASS_XP, p.xp);
+        if (Number.isInteger(p.claimed) && p.claimed > 0) s.pass.claimed = Math.min(p.claimed, Math.floor(s.pass.xp / PASS_XP));
+      }
     } catch (e) { /* brak lub uszkodzony zapis */ }
     return s;
   }
@@ -271,6 +284,7 @@
     state.ups = {};
     fx.cpsUntil = fx.clickUntil = 0;
     bump("prestige");
+    addXp(100);
     sfx("ach");
     announce("🌱 Nowa nora! +" + g + " " + seedsWord(g));
     save();
@@ -486,6 +500,7 @@
       if (state.ach[a.id] || !a.ok()) return;
       state.ach[a.id] = true;
       changed = true;
+      addXp(50);
       announce("🏆 Osiągnięcie: " + a.name + " (+1% produkcji)");
     });
     if (changed) {
@@ -531,6 +546,79 @@
       statsList.appendChild(el("dt", "", it[0]));
       statsList.appendChild(el("dd", "", it[1]));
     });
+  }
+
+  var passToggle = el("button", "shop__toggle", "🎟️");
+  passToggle.type = "button";
+  passToggle.setAttribute("aria-label", "Karnet");
+  passToggle.setAttribute("aria-controls", "shop-pass");
+  tabs.insertBefore(passToggle, statsToggle.nextSibling);
+  var passPanel = el("div", "shop__list");
+  passPanel.id = "shop-pass";
+  var passHead = el("p", "board__msg");
+  var passBar = el("div", "pass__bar");
+  var passFill = el("div", "pass__fill");
+  passBar.appendChild(passFill);
+  var passClaim = el("button", "board__save");
+  passClaim.type = "button";
+  var passList = el("div", "once");
+  passPanel.appendChild(passHead);
+  passPanel.appendChild(passBar);
+  passPanel.appendChild(passClaim);
+  passPanel.appendChild(passList);
+  shop.appendChild(passPanel);
+
+  function passLevel() { return Math.floor(state.pass.xp / PASS_XP); }
+  function passReward(lv) {
+    if (lv % 10 === 0) return { icon: "🌱", text: "+1 złote nasiono", give: function () { state.seeds += 1; } };
+    if (lv % 5 === 0) return { icon: "✨", text: "Szał produkcji ×7 przez 60 s", give: function () { fx.cps = 7; fx.cpsUntil = Date.now() + 60000; } };
+    return { icon: ITEM, text: "Orzeszki za 5 min produkcji", give: function () { gain(Math.max(perSecond() * 300, perClick() * 100)); } };
+  }
+
+  function renderPass() {
+    var lv = passLevel(), xp = state.pass.xp;
+    var month = new Date().toLocaleDateString("pl-PL", { month: "long", year: "numeric" });
+    passHead.textContent = "Karnet — " + month + " · poziom " + lv + " / " + PASS_LEVELS +
+      (lv < PASS_LEVELS ? " · " + Math.floor(xp % PASS_XP) + " / " + PASS_XP + " XP" : " · ukończony!");
+    passFill.style.width = (lv >= PASS_LEVELS ? 100 : (xp % PASS_XP) / PASS_XP * 100) + "%";
+    var ready = lv - state.pass.claimed;
+    passClaim.textContent = ready > 0 ? "Odbierz nagrody (" + ready + ")" : "Brak nagród do odebrania";
+    passClaim.disabled = ready <= 0;
+    passList.textContent = "";
+    for (var i = 1; i <= PASS_LEVELS; i++) {
+      var r = passReward(i), done = i <= state.pass.claimed, open = !done && i <= lv;
+      var row = el("div", "up ach-row" + (done || open ? "" : " is-locked") + (open ? " is-ready" : ""));
+      row.appendChild(el("span", "up__icon", r.icon));
+      row.appendChild(el("span", "up__name", "Poziom " + i));
+      row.appendChild(el("span", "up__count", done ? "✔" : open ? "🎁" : ""));
+      row.appendChild(el("span", "up__desc", r.text));
+      passList.appendChild(row);
+    }
+  }
+
+  passClaim.addEventListener("click", function () {
+    var lv = passLevel(), n = 0;
+    while (state.pass.claimed < lv) {
+      state.pass.claimed++;
+      passReward(state.pass.claimed).give();
+      n++;
+    }
+    if (!n) return;
+    sfx("ach");
+    announce("🎟️ Odebrano nagrody z karnetu: " + n);
+    save();
+    render();
+    renderPass();
+  });
+
+  function addXp(n) {
+    var before = passLevel();
+    state.pass.xp = Math.min(PASS_LEVELS * PASS_XP, state.pass.xp + n);
+    var after = passLevel();
+    if (after <= before) return;
+    announce("🎟️ Karnet: poziom " + after + "! Odbierz nagrodę.");
+    sfx("win");
+    if (view === "pass") renderPass();
   }
 
   // Dźwięki generowane przez Web Audio, domyślnie wyłączone
@@ -589,6 +677,9 @@
     gamble.hidden = v !== "gamble";
     achPanel.hidden = v !== "ach";
     statsPanel.hidden = v !== "stats";
+    passPanel.hidden = v !== "pass";
+    passToggle.setAttribute("aria-expanded", String(v === "pass"));
+    if (v === "pass") renderPass();
     statsToggle.setAttribute("aria-expanded", String(v === "stats"));
     if (v === "stats") renderStats();
     achToggle.setAttribute("aria-expanded", String(v === "ach"));
@@ -603,6 +694,7 @@
   gambleToggle.addEventListener("click", function () { setView(view === "gamble" ? null : "gamble"); });
   achToggle.addEventListener("click", function () { setView(view === "ach" ? null : "ach"); });
   statsToggle.addEventListener("click", function () { setView(view === "stats" ? null : "stats"); });
+  passToggle.addEventListener("click", function () { setView(view === "pass" ? null : "pass"); });
   setView(window.matchMedia("(min-width: 800px)").matches ? "up" : null);
 
   function buy(u) {
@@ -610,6 +702,7 @@
     if (state.nuts < c) return;
     state.nuts -= c;
     state.owned[u.id] = count(u) + 1;
+    addXp(1);
     sfx("buy");
     save();
     render();
@@ -619,6 +712,7 @@
     if (bought(o) || state.nuts < o.cost) return;
     state.nuts -= o.cost;
     state.ups[o.id] = true;
+    addXp(5);
     sfx("buy");
     save();
     render();
@@ -648,6 +742,7 @@
       : "Dostępna od 1 mln zebranych w tej norze";
     prestige.classList.toggle("is-locked", sg < 1);
     prestige.setAttribute("aria-disabled", String(sg < 1));
+    passToggle.classList.toggle("has-reward", passLevel() > state.pass.claimed);
 
     var visible = ONCE.filter(function (o) { return !bought(o) && o.ok(); });
     var key = visible.map(function (o) { return o.id; }).join();
@@ -697,6 +792,7 @@
   hit.addEventListener("click", function (e) {
     var gain = perClick();
     bump("clicks");
+    addXp(0.2);
     earn(gain);
     sfx("click");
     var x = e.clientX, y = e.clientY;
@@ -751,6 +847,7 @@
       clearTimeout(gone);
       b.remove();
       bump("golden");
+      addXp(25);
       sfx("win");
       var r = Math.random();
       if (r < 0.45) {
@@ -780,6 +877,7 @@
     b.addEventListener("click", function (e) {
       b.remove();
       bump("caught");
+      addXp(20);
       sfx("win");
       var n = Math.max(perSecond() * 60, perClick() * 20);
       gain(n, e.clientX, e.clientY);
@@ -807,6 +905,7 @@
       b.addEventListener("pointerdown", function (e) {
         b.remove();
         bump("drops");
+        addXp(2);
         sfx("click");
         gain(Math.max(perSecond() * 2, perClick() * 3), e.clientX, e.clientY);
       });
@@ -833,6 +932,7 @@
       box.remove();
       if (fixed) {
         bump("fixed");
+        addXp(30);
         sfx("ach");
         var n = Math.max(perSecond() * 120, perClick() * 30);
         gain(n);
@@ -868,8 +968,16 @@
   var nextEvent = Date.now() + 60000 + Math.random() * 60000;
   setInterval(function () {
     checkAch();
-    if (!d.hidden) bump("time");
+    if (state.pass.id !== passId()) {
+      state.pass = { id: passId(), xp: 0, claimed: 0 };
+      announce("🎟️ Nowy miesiąc — nowy karnet!");
+    }
+    if (!d.hidden) {
+      bump("time");
+      addXp(2 / 60);
+    }
     if (view === "stats" && !d.hidden) renderStats();
+    if (view === "pass" && !d.hidden) renderPass();
     if (d.hidden || Date.now() < nextEvent) return;
     nextEvent = Date.now() + 120000 + Math.random() * 180000;
     var pool = [[spawnGolden, 5], [spawnHamster, 3]];
