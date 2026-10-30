@@ -108,16 +108,14 @@
       if (q && nick.toLowerCase().indexOf(q) < 0 && id.indexOf(q) < 0) return;
       var tr = d.createElement("tr");
       tr.appendChild(el("td", String(i + 1)));
-      tr.appendChild(el("td", nick));
+      var nickCell = el("td", nick);
+      tr.appendChild(nickCell);
       tr.appendChild(el("td", nf.format(Number(s.score) || 0)));
       var idCell = el("td", id.slice(0, 8) + "…", "mono");
       idCell.title = id;
       tr.appendChild(idCell);
       var act = el("td", undefined, "actions");
-      act.appendChild(btn("Zmień nick", function () {
-        var n = prompt("Nowy nick dla „" + nick + "” (2–16 znaków):", nick);
-        if (n !== null) action("/admin/rename", { id: id, nick: n.trim() }, "Zmieniono nick.");
-      }, "ghost"));
+      act.appendChild(btn("Zmień nick", function () { editNick(nickCell, id, nick); }, "ghost"));
       act.appendChild(btn("Usuń", function () {
         if (confirm("Usunąć wynik gracza „" + nick + "”?")) action("/admin/delete", { id: id }, "Usunięto wpis.");
       }, "danger"));
@@ -136,6 +134,32 @@
       tr.appendChild(td);
       tb.appendChild(tr);
     }
+  }
+
+  // Edycja w wierszu zamiast prompt(), którego część przeglądarek nie obsługuje
+  function editNick(cell, id, nick) {
+    cell.textContent = "";
+    var form = el("form", undefined, "inline-edit");
+    var inp = el("input");
+    inp.value = nick;
+    inp.maxLength = 16;
+    inp.setAttribute("aria-label", "Nowy nick (2–16 znaków)");
+    var ok = el("button", "Zapisz");
+    ok.type = "submit";
+    var cancel = function () { cell.textContent = nick; };
+    form.appendChild(inp);
+    form.appendChild(ok);
+    form.appendChild(btn("Anuluj", cancel, "ghost"));
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var v = inp.value.trim();
+      if (v === nick) { cancel(); return; }
+      action("/admin/rename", { id: id, nick: v }, "Zmieniono nick.");
+    });
+    inp.addEventListener("keydown", function (e) { if (e.key === "Escape") cancel(); });
+    cell.appendChild(form);
+    inp.focus();
+    inp.select();
   }
 
   function refreshScores() {

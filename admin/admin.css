@@ -29,5 +29,8 @@ th,td{padding:.45rem .5rem;border-bottom:1px solid rgba(255,255,255,.08);text-al
 th{color:#9ca3af;font-weight:600}
 td.actions{display:flex;flex-wrap:wrap;gap:.35rem}
 td.actions button{padding:.3rem .6rem;font-size:.8rem}
+.inline-edit{display:flex;gap:.35rem}
+.inline-edit input{min-width:8rem;padding:.3rem .5rem}
+.inline-edit button{padding:.3rem .6rem;font-size:.8rem}
 .list{margin:0;padding:0;list-style:none}
 .list li{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.08)}
