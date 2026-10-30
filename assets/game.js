@@ -128,16 +128,66 @@
   var mcPlayers = 0;
   var BIRTHDAY = null; // dzień urodzin projektu jako "MM-DD", np. "05-17"
 
-  function season() {
-    var t = new Date();
-    var md = ("0" + (t.getMonth() + 1)).slice(-2) + "-" + ("0" + t.getDate()).slice(-2);
-    if (BIRTHDAY && md === BIRTHDAY) return { id: "birthday", icon: "🎂", name: "Urodziny projektu", cps: 2 };
-    if (md >= "10-25" && md <= "11-02") return { id: "halloween", icon: "🎃", name: "Halloween", cps: 1 };
-    if (md >= "12-15" && md <= "12-31") return { id: "xmas", icon: "🎁", name: "Święta", cps: 1 };
+  // Sezony: pierwszy pasujący z listy wygrywa. cps = mnożnik produkcji, item = ikona w miejsce orzeszka
+  function easter(y) {
+    var a = y % 19, b = Math.floor(y / 100), c = y % 100, dd = Math.floor(b / 4), e = b % 4;
+    var f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+    var h = (19 * a + b - dd - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+    var l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(y, mo - 1, da);
+  }
+  function md(t) { return ("0" + (t.getMonth() + 1)).slice(-2) + "-" + ("0" + t.getDate()).slice(-2); }
+  function between(from, to) {
+    return function (t) {
+      var s = md(t);
+      return from <= to ? s >= from && s <= to : s >= from || s <= to;
+    };
+  }
+  function dnum(t) { return Math.floor(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()) / 864e5); }
+  function aroundEaster(from, to) {
+    return function (t) {
+      var x = dnum(t) - dnum(easter(t.getFullYear()));
+      return x >= from && x <= to;
+    };
+  }
+  function blackFriday(t) {
+    if (t.getMonth() !== 10) return false;
+    var first = new Date(t.getFullYear(), 10, 1).getDay();
+    var thanksgiving = 1 + (4 - first + 7) % 7 + 21; // 4. czwartek listopada
+    return t.getDate() === thanksgiving + 1;
+  }
+  var SEASONS = [
+    { id: "birthday", icon: "🎂", name: "Urodziny projektu", cps: 2, item: "🌰", ambient: "🎉", confetti: true,
+      on: function (t) { return !!BIRTHDAY && md(t) === BIRTHDAY; } },
+    { id: "newyear", icon: "🎆", name: "Nowy Rok", cps: 1.5, ambient: "✨", confetti: true, on: between("12-31", "01-02") },
+    { id: "valentine", icon: "💝", name: "Walentynki", cps: 1.5, ambient: "💕", dir: "up", on: between("02-13", "02-14") },
+    { id: "fatthu", icon: "🍩", name: "Tłusty Czwartek", cps: 1.5, on: aroundEaster(-52, -52) },
+    { id: "easter", icon: "🥚", name: "Wielkanoc", cps: 1.5, ambient: "🐣", on: aroundEaster(-2, 1) },
+    { id: "kids", icon: "🎈", name: "Dzień Dziecka", cps: 1.5, ambient: "🎈", dir: "up", confetti: true, on: between("06-01", "06-01") },
+    { id: "summer", icon: "☀️", name: "Wakacje", cps: 1, item: "🌰", ambient: "🌴", on: between("06-21", "08-31") },
+    { id: "halloween", icon: "🎃", name: "Halloween", cps: 1, ambient: "🦇", on: between("10-25", "11-02") },
+    { id: "independence", icon: "🦅", name: "Święto Niepodległości", cps: 1.5, item: "🌰", on: between("11-11", "11-11") },
+    { id: "andrzejki", icon: "🔮", name: "Andrzejki", cps: 1.5, ambient: "✨", on: between("11-29", "11-30") },
+    { id: "blackfriday", icon: "🛒", name: "Black Friday", cps: 1.5, item: "🌰", on: blackFriday },
+    { id: "santa", icon: "🎅", name: "Mikołajki", cps: 1.5, item: "🎁", on: between("12-05", "12-06") },
+    { id: "xmas", icon: "🎁", name: "Święta", cps: 1, snow: true, on: between("12-15", "12-30") }
+  ];
+  function seasonAt(t) {
+    for (var i = 0; i < SEASONS.length; i++) if (SEASONS[i].on(t)) return SEASONS[i];
     return null;
   }
-  var SEASON = season();
-  var ITEM = SEASON && SEASON.id !== "birthday" ? SEASON.icon : "🌰";
+  function nextSeason() {
+    var now = new Date(), cur = SEASON ? SEASON.id : null;
+    for (var i = 1; i <= 400; i++) {
+      var s = seasonAt(new Date(now.getFullYear(), now.getMonth(), now.getDate() + i));
+      if (s && s.id !== cur) return { s: s, days: i };
+    }
+    return null;
+  }
+  function multText(n) { return String(n).replace(".", ","); }
+  var SEASON = seasonAt(new Date());
+  var ITEM = SEASON ? (SEASON.item || SEASON.icon) : "🌰";
 
   function eventCpsMult() {
     var m = Date.now() < fx.cpsUntil ? fx.cps : 1;
@@ -598,6 +648,12 @@
   statsPanel.appendChild(statsList);
   shop.appendChild(statsPanel);
 
+  function nextSeasonText() {
+    var n = nextSeason();
+    if (!n) return "brak";
+    return n.s.icon + " " + n.s.name + " (" + (n.days === 1 ? "jutro" : "za " + n.days + " dni") + ")";
+  }
+
   function renderStats() {
     var s = state.stats, tm = s.time || 0;
     var items = [
@@ -616,6 +672,8 @@
       ["Orzeszki z deszczu", fmt(s.drops || 0)],
       ["Naprawione awarie", fmt(s.fixed || 0)],
       ["Jackpoty", fmt(s.jackpot || 0)],
+      ["Sezon", SEASON ? SEASON.icon + " " + SEASON.name + (SEASON.cps > 1 ? " (×" + multText(SEASON.cps) + ")" : "") : "brak"],
+      ["Następny sezon", nextSeasonText()],
       ["Czas gry", Math.floor(tm / 3600) + " h " + Math.floor(tm % 3600 / 60) + " min"]
     ];
     statsList.textContent = "";
@@ -810,7 +868,7 @@
     if (t < fx.clickUntil) parts.push("✨ ×" + fx.click + " za klik (" + Math.ceil((fx.clickUntil - t) / 1000) + " s)");
     if (fx.outage) parts.push("⚠️ awaria −50%");
     if (mcPlayers) parts.push("⛏️ +" + mcPlayers * 10 + "% (gracze MC)");
-    if (SEASON) parts.push(SEASON.icon + " " + SEASON.name + (SEASON.cps > 1 ? " ×" + SEASON.cps : ""));
+    if (SEASON) parts.push(SEASON.icon + " " + SEASON.name + (SEASON.cps > 1 ? " ×" + multText(SEASON.cps) : ""));
     scoreFx.textContent = parts.join(" · ");
 
     var sg = seedGain();
@@ -1100,12 +1158,32 @@
   }, 1000);
 
   if (SEASON) {
-    d.body.classList.add("season-" + SEASON.id);
-    if (SEASON.id === "xmas") d.body.appendChild(el("div", "snow"));
+    d.body.classList.add("season", "season-" + SEASON.id);
+    if (SEASON.snow) d.body.appendChild(el("div", "snow"));
     setTimeout(function () {
-      announce(SEASON.icon + " " + SEASON.name + (SEASON.cps > 1 ? "! Produkcja ×" + SEASON.cps : "!"));
-      if (SEASON.id === "birthday") confetti();
+      announce(SEASON.icon + " " + SEASON.name + (SEASON.cps > 1 ? "! Produkcja ×" + multText(SEASON.cps) : "!"));
+      if (SEASON.confetti) confetti();
     }, 1500);
+
+    // Mało natrętne ozdoby w tle: nie blokują kliknięć, maks. 8 naraz
+    if (SEASON.ambient) {
+      var alive = 0;
+      setInterval(function () {
+        if (d.hidden || alive >= 8) return;
+        alive++;
+        var b = el("span", "amb", SEASON.ambient);
+        b.setAttribute("aria-hidden", "true");
+        b.style.left = (2 + Math.random() * 94) + "vw";
+        b.style.fontSize = (1 + Math.random() * 1.2) + "rem";
+        d.body.appendChild(b);
+        var up = SEASON.dir === "up", sway = Math.random() * 60 - 30;
+        animate(b, 7000 + Math.random() * 5000, function (p) {
+          var y = up ? (1.1 - 1.2 * p) * window.innerHeight : (-0.1 + 1.2 * p) * window.innerHeight;
+          b.style.transform = "translate(" + Math.sin(p * 6) * sway + "px," + y + "px)";
+          b.style.opacity = String(0.55 * Math.min(1, p * 8, (1 - p) * 8));
+        }, function () { alive--; b.remove(); });
+      }, 1800);
+    }
   }
 
   // Przyrost liczony z upływu czasu, bo przeglądarki spowalniają timery w kartach w tle
