@@ -428,7 +428,7 @@
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (rows) {
         boardList.textContent = "";
-        rows.slice(0, 10).forEach(function (row) {
+        rows.slice(0, 25).forEach(function (row) {
           var li = el("li", "board__item");
           li.appendChild(el("span", "board__name", String(row.nick)));
           li.appendChild(el("span", "board__score", fmt(Number(row.score))));
