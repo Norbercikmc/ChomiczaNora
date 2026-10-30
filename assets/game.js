@@ -3,6 +3,13 @@
 
   var d = document;
   var KEY = "chomicza-clicker-v1";
+  // Wersja z ?v= w tagu <script> w index.html — to jedno źródło prawdy dla aktualizacji i rankingu
+  var BUILD = (function () {
+    var s = d.querySelector('script[src*="game.js"]');
+    var m = s && /[?&]v=([\w.-]+)/.exec(s.src);
+    return m ? m[1] : "";
+  })();
+  var stale = false;
   // Strona jest jednoekranowa: bez tego przeglądarka po przeładowaniu przywraca przesunięcie widoku
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   window.scrollTo(0, 0);
@@ -179,6 +186,7 @@
   }
 
   function save() {
+    if (stale) return; // nieaktualna karta nie może nadpisać nowszego zapisu
     state.last = Date.now();
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* brak dostępu do storage */ }
   }
@@ -362,13 +370,14 @@
 
   function submitScore() {
     var total = Math.floor(state.total);
-    if (!nick || total <= lastSent) return;
+    if (stale || !nick || total <= lastSent) return;
     lastSent = total;
     fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: playerId, nick: nick, score: total })
+      body: JSON.stringify({ id: playerId, nick: nick, score: total, build: BUILD })
     }).then(function (r) {
+      if (r.status === 426) { markStale(); return; }
       if (r.status === 409) {
         boardMsg.textContent = "Ten nick jest już zajęty.";
         nick = "";
@@ -1158,48 +1167,64 @@
     mcStatus();
     setInterval(mcStatus, 60000);
   }
-  // Wykrywanie nowej wersji strony przez porównanie ETag/Last-Modified plików
-  var FILES = ["./", "assets/game.js", "assets/game.css", "assets/s.js", "assets/s.css"];
-  var version = null;
-  var updateReady = false;
-
-  function stamp() {
-    return Promise.all(FILES.map(function (f) {
-      return fetch(f, { method: "HEAD", cache: "no-store" }).then(function (r) {
-        return r.headers.get("etag") || r.headers.get("last-modified") || "";
+  // Wykrywanie nowej wersji: index.html z serwera wskazuje aktualny ?v= dla game.js
+  function remoteBuild() {
+    return fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function (t) {
+        var m = /assets\/game\.js\?v=([\w.-]+)/.exec(t);
+        return m ? m[1] : null;
       });
-    })).then(function (a) { return a.join("|"); });
   }
 
   function reloadSafely() {
-    // Ochrona przed pętlą przeładowań, gdyby serwer zwracał niestabilne nagłówki
+    // Ochrona przed pętlą przeładowań, gdyby CDN chwilowo serwował starą wersję
     var last = 0;
     try { last = Number(sessionStorage.getItem(KEY + "-reload")) || 0; } catch (e) { /* brak storage */ }
-    if (Date.now() - last < 600000) return;
+    if (Date.now() - last < 60000) return false;
     try { sessionStorage.setItem(KEY + "-reload", String(Date.now())); } catch (e) { /* brak storage */ }
-    save();
     location.reload();
+    return true;
+  }
+
+  function markStale() {
+    if (stale) return;
+    stale = true;
+    var ov = el("div", "stale");
+    ov.setAttribute("role", "alertdialog");
+    ov.setAttribute("aria-modal", "true");
+    var box = el("div", "stale__box");
+    var msg = el("p", "", "Ta karta działa na starej wersji gry, więc zapis i ranking są wstrzymane. Odśwież, aby grać dalej.");
+    var go = el("button", "", "Odśwież teraz");
+    go.type = "button";
+    go.addEventListener("click", function () { location.reload(); });
+    box.appendChild(el("h2", "", "Dostępna nowa wersja gry"));
+    box.appendChild(msg);
+    box.appendChild(go);
+    ov.appendChild(box);
+    d.body.appendChild(ov);
+    go.focus();
+    var left = 8;
+    var iv = setInterval(function () {
+      left--;
+      go.textContent = "Odśwież teraz (" + left + ")";
+      if (left <= 0) {
+        clearInterval(iv);
+        if (!reloadSafely()) go.textContent = "Odśwież teraz";
+      }
+    }, 1000);
   }
 
   function checkUpdate() {
-    if (updateReady) return;
-    stamp().then(function (v) {
-      if (version === null) { version = v; return; }
-      if (v === version) return;
-      updateReady = true;
-      save();
-      var btn = el("button", "update", "Nowa wersja strony — odśwież");
-      btn.type = "button";
-      btn.addEventListener("click", function () { location.reload(); });
-      d.body.appendChild(btn);
-      if (d.hidden) reloadSafely();
+    if (stale || !BUILD) return;
+    remoteBuild().then(function (v) {
+      if (v && v !== BUILD) markStale();
     }).catch(function () { /* brak sieci */ });
   }
 
-  d.addEventListener("visibilitychange", function () {
-    if (d.hidden) { if (updateReady) reloadSafely(); } else checkUpdate();
-  });
-  setInterval(checkUpdate, 120000);
+  d.addEventListener("visibilitychange", function () { if (!d.hidden) checkUpdate(); });
+  window.addEventListener("focus", checkUpdate);
+  setInterval(checkUpdate, 60000);
   checkUpdate();
 
   // Zysk z nieobecności: 50% produkcji, maks. 8 godzin
