@@ -20,14 +20,14 @@
   var UPGRADES = [
     { id: "paw", icon: "🐾", name: "Mocniejsze łapki", desc: "+1 orzeszek za kliknięcie", base: 50, growth: 1.7, click: 1 },
     { id: "hamster", icon: "🐹", name: "Chomik", desc: "1 orzeszek/s", base: 15, growth: 1.15, cps: 1 },
-    { id: "wheel", icon: "🎡", name: "Koło do biegania", desc: "5 orzeszków/s", base: 100, growth: 1.15, cps: 5 },
-    { id: "pi", icon: "🥧", name: "Raspberry Pi", desc: "20 orzeszków/s", base: 600, growth: 1.15, cps: 20 },
-    { id: "mc", icon: "⛏️", name: "Serwer Minecraft", desc: "100 orzeszków/s", base: 3000, growth: 1.15, cps: 100 },
-    { id: "lab", icon: "🖥️", name: "Maszynownia", desc: "500 orzeszków/s", base: 15000, growth: 1.15, cps: 500 },
-    { id: "rack", icon: "🗄️", name: "Szafa rack", desc: "2 500 orzeszków/s", base: 80000, growth: 1.15, cps: 2500 },
-    { id: "gpu", icon: "🎮", name: "Farma GPU", desc: "12 000 orzeszków/s", base: 450000, growth: 1.15, cps: 12000 },
-    { id: "ai", icon: "🤖", name: "Klaster AI", desc: "60 000 orzeszków/s", base: 2500000, growth: 1.15, cps: 60000 },
-    { id: "dc", icon: "🏢", name: "Centrum danych", desc: "350 000 orzeszków/s", base: 15000000, growth: 1.15, cps: 350000 }
+    { id: "wheel", icon: "🎡", name: "Koło do biegania", desc: "4 orzeszki/s", base: 120, growth: 1.15, cps: 4 },
+    { id: "pi", icon: "🥧", name: "Raspberry Pi", desc: "14 orzeszków/s", base: 900, growth: 1.15, cps: 14 },
+    { id: "mc", icon: "⛏️", name: "Serwer Minecraft", desc: "50 orzeszków/s", base: 7000, growth: 1.15, cps: 50 },
+    { id: "lab", icon: "🖥️", name: "Maszynownia", desc: "180 orzeszków/s", base: 60000, growth: 1.15, cps: 180 },
+    { id: "rack", icon: "🗄️", name: "Szafa rack", desc: "700 orzeszków/s", base: 600000, growth: 1.15, cps: 700 },
+    { id: "gpu", icon: "🎮", name: "Farma GPU", desc: "2 800 orzeszków/s", base: 7000000, growth: 1.15, cps: 2800 },
+    { id: "ai", icon: "🤖", name: "Klaster AI", desc: "11 000 orzeszków/s", base: 90000000, growth: 1.15, cps: 11000 },
+    { id: "dc", icon: "🏢", name: "Centrum danych", desc: "45 000 orzeszków/s", base: 1200000000, growth: 1.15, cps: 45000 }
   ];
 
   // Jednorazowe ulepszenia, widoczne dopiero po spełnieniu warunku ok()
@@ -47,14 +47,16 @@
       ok: function () { return (state.owned.paw || 0) >= 10; } },
     { id: "coach", icon: "🏋️", name: "Trener chomików", desc: "Kliknięcie daje +2% produkcji/s", cost: 10000, clickPct: 0.02,
       ok: function () { return state.total >= 5000; } },
-    { id: "champ", icon: "🏆", name: "Mistrz klikania", desc: "Kliknięcie daje dodatkowo +5% produkcji/s", cost: 1000000, clickPct: 0.05,
-      ok: function () { return state.total >= 500000; } },
-    { id: "oc", icon: "⚡", name: "Przetaktowanie", desc: "Cała produkcja +25%", cost: 200000, global: 1.25,
-      ok: function () { return state.total >= 100000; } },
-    { id: "psu", icon: "🔌", name: "Zasilacz Gold", desc: "Cała produkcja +25%", cost: 5000000, global: 1.25,
-      ok: function () { return state.total >= 2500000; } },
-    { id: "water", icon: "❄️", name: "Chłodzenie wodne", desc: "Cała produkcja +50%", cost: 100000000, global: 1.5,
-      ok: function () { return state.total >= 50000000; } }
+    { id: "champ", icon: "🏆", name: "Mistrz klikania", desc: "Kliknięcie daje dodatkowo +5% produkcji/s", cost: 3000000, clickPct: 0.05,
+      ok: function () { return state.total >= 1500000; } },
+    { id: "oc", icon: "⚡", name: "Przetaktowanie", desc: "Cała produkcja +25%", cost: 3000000, global: 1.25,
+      ok: function () { return state.total >= 1500000; } },
+    { id: "psu", icon: "🔌", name: "Zasilacz Gold", desc: "Cała produkcja +25%", cost: 100000000, global: 1.25,
+      ok: function () { return state.total >= 50000000; } },
+    { id: "water", icon: "❄️", name: "Chłodzenie wodne", desc: "Cała produkcja +50%", cost: 2000000000, global: 1.5,
+      ok: function () { return state.total >= 1000000000; } },
+    { id: "fusion", icon: "⚛️", name: "Reaktor fuzyjny", desc: "Cała produkcja ×2", cost: 50000000000, global: 2,
+      ok: function () { return state.total >= 25000000000; } }
   );
 
   function stat(k, n) { return function () { return (state.stats[k] || 0) >= n; }; }
@@ -87,7 +89,7 @@
     { id: "run", icon: "🏃", name: "Łowca chomików", desc: "Złap uciekającego chomika", ok: stat("caught", 1) },
     { id: "rain", icon: "🧺", name: "Pełny koszyk", desc: "Złap 50 orzeszków z deszczu", ok: stat("drops", 50) },
     { id: "fix", icon: "🛠️", name: "Admin na dyżurze", desc: "Napraw awarię Maszynowni", ok: stat("fixed", 1) },
-    { id: "jack", icon: "🎰", name: "Jackpot", desc: "Wygraj ×10 w Kole chomika", ok: stat("jackpot", 1) },
+    { id: "jack", icon: "🎰", name: "Jackpot", desc: "Wygraj ×10 lub więcej w Kole chomika", ok: stat("jackpot", 1) },
     { id: "broke", icon: "💸", name: "All in", desc: "Przegraj w gambie wszystko (min. 1 tys.)", ok: stat("broke", 1) },
     { id: "mcp", icon: "⛏️", name: "Na serwerze", desc: "Graj, gdy ktoś jest na serwerze Minecraft", ok: function () { return mcPlayers > 0; } },
     { id: "sea", icon: "🎃", name: "Sezonowiec", desc: "Graj podczas eventu sezonowego", ok: function () { return !!SEASON; } },
@@ -107,8 +109,10 @@
   function fresh() { return { nuts: 0, total: 0, run: 0, seeds: 0, owned: {}, ups: {}, ach: {}, stats: {}, last: 0, gamba: { bets: 0, won: 0, lost: 0, bigWin: 0, bigLoss: 0 }, pass: { id: passId(), xp: 0, claimed: 0 } }; }
   function bump(k) { state.stats[k] = (state.stats[k] || 0) + 1; }
   function achMult() { return 1 + 0.01 * Object.keys(state.ach).length; }
-  function seedMult() { return 1 + 0.03 * state.seeds; }
-  function seedGain() { return Math.floor(Math.cbrt(state.run / 1e6)); }
+  // Prestiż: pierwsze nasiono po SEED_BASE zebranych w norze, każde daje +SEED_PCT% produkcji i klikania
+  var SEED_BASE = 1e7, SEED_PCT = 4;
+  function seedMult() { return 1 + SEED_PCT / 100 * state.seeds; }
+  function seedGain() { return Math.floor(Math.cbrt(state.run / SEED_BASE)); }
   function seedsWord(n) {
     if (n === 1) return "złote nasiono";
     var a = n % 10, b = n % 100;
@@ -189,11 +193,13 @@
   var SEASON = seasonAt(new Date());
   var ITEM = SEASON ? (SEASON.item || SEASON.icon) : "🌰";
 
+  // Gracze na Minecrafcie: +5% produkcji za każdego, maks. +50% (10 graczy)
+  function mcBonus() { return 1 + 0.05 * Math.min(mcPlayers, 10); }
   function eventCpsMult() {
     var m = Date.now() < fx.cpsUntil ? fx.cps : 1;
     if (fx.outage) m *= 0.5;
     if (SEASON) m *= SEASON.cps;
-    return m * (1 + 0.1 * mcPlayers);
+    return m * mcBonus();
   }
   function eventClickMult() { return Date.now() < fx.clickUntil ? fx.click : 1; }
 
@@ -345,7 +351,7 @@
     var g = seedGain();
     if (g < 1) return;
     if (!confirm("Przeprowadzka zresetuje orzeszki, budynki i ulepszenia (ranking i osiągnięcia zostają). " +
-      "Dostaniesz " + g + " " + seedsWord(g) + ": +" + g * 3 + "% produkcji i klikania na stałe. Kontynuować?")) return;
+      "Dostaniesz " + g + " " + seedsWord(g) + ": +" + g * SEED_PCT + "% produkcji i klikania na stałe. Kontynuować?")) return;
     state.seeds += g;
     state.nuts = 0;
     state.run = 0;
@@ -479,15 +485,14 @@
 
   // Gamba: tylko wirtualne orzeszki, wygrane nie liczą się do rankingu (state.total)
   var GAMES = [
-    { kind: "coin", icon: "🪙", name: "Rzut monetą", desc: "45% szans na ×2", outcomes: [[0.45, 2], [0.55, 0]] },
-    // Zwrot ze stawki ok. 90% (×0 60%, ×1 14%, ×2 15%, ×3 7%, ×5 3%, ×10 1%), rozożone na wycinki koła
-    { kind: "wheel", icon: "🎡", name: "Koło chomika", desc: "×0 / ×1 / ×2 / ×3 / ×5 / ×10", outcomes: [
-      [0.15, 0], [0.07, 1], [0.075, 2], [0.15, 0], [0.035, 3], [0.03, 5],
-      [0.15, 0], [0.07, 1], [0.075, 2], [0.15, 0], [0.035, 3], [0.01, 10]
+    { kind: "coin", icon: "🪙", name: "Rzut monetą", desc: "48,5% szans na ×2", outcomes: [[0.485, 2], [0.515, 0]] },
+    // Szanse na mnożnik (zwrot ze stawki 96,5%); wycinki na kole są równe, więc nie odzwierciedlają szans
+    { kind: "wheel", icon: "🎡", name: "Koło chomika", desc: "aż do ×100", outcomes: [
+      [0.72, 0], [0.08, 1], [0.10, 2], [0.045, 3], [0.03, 5], [0.02, 10], [0.004, 25], [0.001, 100]
     ] }
   ];
-  // Limit stawki: 15 min produkcji (min. 1 000), żeby gamba nie była drogą na skróty przy dużych bankrollach
-  function maxBet() { return Math.max(1000, Math.floor(perSecond() * 900)); }
+  function pct(p) { return (p * 100).toLocaleString("pl-PL", { maximumFractionDigits: 1 }) + "%"; }
+  function rtp(g) { return g.outcomes.reduce(function (a, o) { return a + o[0] * o[1]; }, 0); }
   var gamble = el("div", "shop__list gamble");
   gamble.id = "shop-gamble";
   var gambleMsg = el("p", "board__msg", "Postaw orzeszki i spróbuj szczęścia.");
@@ -498,15 +503,16 @@
   betInput.value = "10";
   betInput.setAttribute("aria-label", "Stawka");
   var quick = el("div", "board__row");
-  [["10%", 0.1], ["50%", 0.5], ["Maks.", 1]].forEach(function (q) {
+  [["10%", 0.1], ["50%", 0.5], ["Wszystko", 1]].forEach(function (q) {
     var qb = el("button", "board__save", q[0]);
     qb.type = "button";
     qb.addEventListener("click", function () {
-      betInput.value = Math.max(1, Math.min(maxBet(), Math.floor(state.nuts * q[1])));
+      betInput.value = Math.max(1, Math.floor(state.nuts * q[1]));
     });
     quick.appendChild(qb);
   });
-  var betHint = el("p", "board__msg", "");
+  var betHint = el("p", "board__msg", "Zwrot ze stawki: moneta " + pct(rtp(GAMES[0])) + ", koło " + pct(rtp(GAMES[1])) +
+    ". Szanse koła: " + GAMES[1].outcomes.map(function (o) { return "×" + o[1] + " " + pct(o[0]); }).join(" · "));
   gamble.appendChild(gambleMsg);
   gamble.appendChild(betInput);
   gamble.appendChild(quick);
@@ -577,15 +583,16 @@
   }
   renderGambaStats();
 
-  var WHEEL_COLORS = { 0: "#374151", 1: "#3b82f6", 2: "#22c55e", 3: "#a855f7", 5: "#ef4444", 10: "#f59e0b" };
-  var stops = [], deg = 0;
-  GAMES[1].outcomes.forEach(function (o) {
-    var w = o[0] * 360;
-    stops.push(WHEEL_COLORS[o[1]] + " " + deg + "deg " + (deg + w) + "deg");
-    var lbl = el("span", "wheel__lbl", "×" + o[1]);
-    lbl.style.transform = "translate(-50%,-50%) rotate(" + (deg + w / 2) + "deg) translateY(-48px)";
+  var WHEEL_COLORS = { 0: "#374151", 1: "#3b82f6", 2: "#22c55e", 3: "#a855f7", 5: "#ef4444", 10: "#f59e0b", 25: "#ec4899", 100: "#fde047" };
+  // 24 równe wycinki; jackpoty (×25, ×100) leżą obok pustych pól, żeby koło dawało emocje
+  var WHEEL_SLICES = [0, 1, 0, 2, 0, 3, 0, 5, 0, 1, 0, 2, 0, 10, 0, 3, 0, 1, 0, 25, 0, 5, 2, 100];
+  var SLICE = 360 / WHEEL_SLICES.length;
+  var stops = [];
+  WHEEL_SLICES.forEach(function (m, i) {
+    stops.push(WHEEL_COLORS[m] + " " + i * SLICE + "deg " + (i + 1) * SLICE + "deg");
+    var lbl = el("span", "wheel__lbl", "×" + m);
+    lbl.style.transform = "translate(-50%,-50%) rotate(" + (i * SLICE + SLICE / 2) + "deg) translateY(-58px) rotate(90deg)";
     wheel.appendChild(lbl);
-    deg += w;
   });
   wheel.style.background = "conic-gradient(" + stops.join(",") + ")";
   var wheelRot = 0;
@@ -596,7 +603,6 @@
     var bet = Math.floor(Number(betInput.value));
     if (!isFinite(bet) || bet < 1) { gambleMsg.textContent = "Podaj stawkę (min. 1)."; return; }
     if (bet > Math.floor(state.nuts)) { gambleMsg.textContent = "Nie masz tylu orzeszków."; return; }
-    if (bet > maxBet()) { gambleMsg.textContent = "Maksymalna stawka to " + fmt(maxBet()) + " (15 min produkcji)."; return; }
     busy = true;
     state.nuts -= bet;
     render();
@@ -613,21 +619,19 @@
     }
 
     gambleMsg.textContent = "🎡 Kręcę…";
-    var start = 0;
-    for (var i = 0; i < idx; i++) start += g.outcomes[i][0] * 360;
-    var land = start + g.outcomes[idx][0] * 360 * (0.15 + 0.7 * Math.random());
+    // Wynik jest już wylosowany; wybieramy losowy wycinek z tym mnożnikiem i lądujemy w jego środku
+    var cands = [];
+    WHEEL_SLICES.forEach(function (m, i) { if (m === mult) cands.push(i); });
+    var sl = cands[Math.floor(Math.random() * cands.length)];
+    var land = sl * SLICE + SLICE * (0.15 + 0.7 * Math.random());
     var from = wheelRot;
     // Pod wskaźnikiem (góra) jest kąt koła równy -obrót, więc kończymy na obrocie ≡ -land (mod 360)
-    var delta = 360 * 5 + ((-land - from) % 360 + 360) % 360;
+    var delta = 360 * 6 + ((-land - from) % 360 + 360) % 360;
     var lastSlice = -1;
-    animate(wheel, 3500, function (p) {
+    animate(wheel, 4500, function (p) {
       wheelRot = from + delta * ease(p);
       wheel.style.transform = "rotate(" + wheelRot + "deg)";
-      var under = (-wheelRot % 360 + 360) % 360, s = 0, acc = 0;
-      while (s < g.outcomes.length - 1 && under >= acc + g.outcomes[s][0] * 360) {
-        acc += g.outcomes[s][0] * 360;
-        s++;
-      }
+      var s = Math.floor(((-wheelRot % 360 + 360) % 360) / SLICE);
       if (s !== lastSlice) { lastSlice = s; sfx("tick"); }
     }, function () {
       wheelRot %= 360;
@@ -655,12 +659,14 @@
       gs.lost += bet;
       gs.bigLoss = Math.max(gs.bigLoss, bet);
     }
-    if (mult === 10) { bump("jackpot"); confetti(); }
+    if (mult >= 10) { bump("jackpot"); confetti(); }
+    if (mult >= 25) { confetti(); sfx("ach"); }
     if (mult === 0 && state.nuts < 1 && bet >= 1000) bump("broke");
     sfx(mult > 1 ? "win" : mult === 0 ? "lose" : "buy");
     state.nuts += bet * mult;
     gambleMsg.textContent = mult === 0 ? "Przegrana: −" + fmt(bet) + " " + ITEM
       : mult === 1 ? "Zwrot stawki."
+      : mult >= 10 ? "🎰 JACKPOT ×" + mult + "! +" + fmt(bet * (mult - 1)) + " " + ITEM
       : "Wygrana ×" + mult + ": +" + fmt(bet * (mult - 1)) + " " + ITEM;
     busy = false;
     save();
@@ -756,7 +762,7 @@
       ["Budynki", fmt(buildings())],
       ["Ulepszenia", Object.keys(state.ups).length + " / " + ONCE.length],
       ["Osiągnięcia", Object.keys(state.ach).length + " / " + ACH.length],
-      ["Złote nasiona", state.seeds + " (+" + state.seeds * 3 + "%)"],
+      ["Złote nasiona", state.seeds + " (+" + state.seeds * SEED_PCT + "%)"],
       ["Przeprowadzki", fmt(s.prestige || 0)],
       ["Złote orzeszki", fmt(s.golden || 0)],
       ["Złapane chomiki", fmt(s.caught || 0)],
@@ -886,7 +892,7 @@
     line(dl, "Ulepszenia globalne", mx(globalMult()));
     line(dl, "Osiągnięcia (" + Object.keys(state.ach).length + ")", mx(achMult()));
     line(dl, "Złote nasiona (" + state.seeds + ")", mx(seedMult()));
-    line(dl, "Gracze MC (" + mcPlayers + ")", mx(1 + 0.1 * mcPlayers));
+    line(dl, "Gracze MC (" + mcPlayers + ")", mx(mcBonus()));
     line(dl, "Sezon", SEASON ? mx(SEASON.cps) : "—");
     line(dl, "Szał z eventu", fxm > 1 ? mx(fxm) : "—");
     line(dl, "Awaria", fx.outage ? "×0,5" : "—");
@@ -940,9 +946,9 @@
 
     dl = section("Prestiż");
     var sg = seedGain();
-    line(dl, "Złote nasiona", state.seeds + " (+" + state.seeds * 3 + "%)");
+    line(dl, "Złote nasiona", state.seeds + " (+" + state.seeds * SEED_PCT + "%)");
     line(dl, "Za przeprowadzkę teraz", sg >= 1 ? "+" + sg : "—");
-    line(dl, "Następne nasiono przy", fmt(1e6 * Math.pow(sg + 1, 3)) + " w norze");
+    line(dl, "Następne nasiono przy", fmt(SEED_BASE * Math.pow(sg + 1, 3)) + " w norze");
 
     dl = section("Gamba (zwrot ze stawki)");
     GAMES.forEach(function (g) {
@@ -1062,21 +1068,20 @@
       ? cps.toLocaleString("pl-PL", { maximumFractionDigits: 1 }) + " na sekundę"
       : "kliknij logo!";
     d.title = fmt(n) + " orzeszków — Chomicza Nora";
-    betHint.textContent = "Maks. stawka: " + fmt(maxBet()) + " (15 min produkcji, min. 1 tys.)";
 
     var t = Date.now(), parts = [];
     if (t < fx.cpsUntil) parts.push("✨ ×" + fx.cps + " produkcji (" + Math.ceil((fx.cpsUntil - t) / 1000) + " s)");
     if (t < fx.clickUntil) parts.push("✨ ×" + fx.click + " za klik (" + Math.ceil((fx.clickUntil - t) / 1000) + " s)");
     if (fx.outage) parts.push("⚠️ awaria −50%");
-    if (mcPlayers) parts.push("⛏️ +" + mcPlayers * 10 + "% (gracze MC)");
+    if (mcPlayers) parts.push("⛏️ +" + Math.round((mcBonus() - 1) * 100) + "% (gracze MC)");
     if (SEASON) parts.push(SEASON.icon + " " + SEASON.name + (SEASON.cps > 1 ? " ×" + multText(SEASON.cps) : ""));
     scoreFx.textContent = parts.join(" · ");
 
     var sg = seedGain();
     prCount.textContent = state.seeds ? "🌱" + state.seeds : "";
     prDesc.textContent = sg >= 1
-      ? "Reset za +" + sg + " " + seedsWord(sg) + " (+" + sg * 3 + "% na stałe)"
-      : "Dostępna od 1 mln zebranych w tej norze";
+      ? "Reset za +" + sg + " " + seedsWord(sg) + " (+" + sg * SEED_PCT + "% na stałe)"
+      : "Dostępna od " + fmt(SEED_BASE) + " zebranych w tej norze";
     prestige.classList.toggle("is-locked", sg < 1);
     prestige.setAttribute("aria-disabled", String(sg < 1));
     passToggle.classList.toggle("has-reward", passLevel() > state.pass.claimed);
