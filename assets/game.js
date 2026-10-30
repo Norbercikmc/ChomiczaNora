@@ -50,8 +50,82 @@
       ok: function () { return state.total >= 50000000; } }
   );
 
+  function stat(k, n) { return function () { return (state.stats[k] || 0) >= n; }; }
+  function tot(n) { return function () { return state.total >= n; }; }
+  function own(id, n) { return function () { return (state.owned[id] || 0) >= n; }; }
+  function buildings() {
+    return UPGRADES.reduce(function (a, u) { return a + (u.cps ? count(u) : 0); }, 0);
+  }
+
+  var STATS = ["clicks", "golden", "caught", "drops", "fixed", "jackpot", "broke", "prestige", "time"];
+  var ACH = [
+    { id: "c1", icon: "👆", name: "Pierwszy klik", desc: "Kliknij logo", ok: stat("clicks", 1) },
+    { id: "c100", icon: "✌️", name: "Rozgrzewka", desc: "100 kliknięć", ok: stat("clicks", 100) },
+    { id: "c1k", icon: "🖐️", name: "Klikacz", desc: "1 000 kliknięć", ok: stat("clicks", 1000) },
+    { id: "c10k", icon: "🦾", name: "Żelazny palec", desc: "10 000 kliknięć", ok: stat("clicks", 10000) },
+    { id: "t1k", icon: "🌰", name: "Mała spiżarnia", desc: "Zbierz łącznie 1 tys.", ok: tot(1e3) },
+    { id: "t100k", icon: "🐹", name: "Pełne policzki", desc: "Zbierz łącznie 100 tys.", ok: tot(1e5) },
+    { id: "t10m", icon: "🏦", name: "Skarbiec chomika", desc: "Zbierz łącznie 10 mln", ok: tot(1e7) },
+    { id: "t1b", icon: "💰", name: "Orzechowy magnat", desc: "Zbierz łącznie 1 mld", ok: tot(1e9) },
+    { id: "t1t", icon: "👑", name: "Orzechowe imperium", desc: "Zbierz łącznie 1 bln", ok: tot(1e12) },
+    { id: "h1", icon: "🐹", name: "Pierwszy lokator", desc: "Kup chomika", ok: own("hamster", 1) },
+    { id: "h50", icon: "🏘️", name: "Kolonia", desc: "Miej 50 chomików", ok: own("hamster", 50) },
+    { id: "lab", icon: "🖥️", name: "Własna Maszynownia", desc: "Kup Maszynownię", ok: own("lab", 1) },
+    { id: "dc", icon: "🏢", name: "Hiperskala", desc: "Kup Centrum danych", ok: own("dc", 1) },
+    { id: "b100", icon: "🏗️", name: "Deweloper", desc: "Miej 100 budynków łącznie", ok: function () { return buildings() >= 100; } },
+    { id: "u5", icon: "🔩", name: "Majsterkowicz", desc: "Kup 5 ulepszeń jednorazowych", ok: function () { return Object.keys(state.ups).length >= 5; } },
+    { id: "uall", icon: "⭐", name: "Wszystko kupione", desc: "Kup wszystkie ulepszenia jednorazowe", ok: function () { return Object.keys(state.ups).length >= ONCE.length; } },
+    { id: "g1", icon: "✨", name: "Złota łapka", desc: "Kliknij złotego orzeszka", ok: stat("golden", 1) },
+    { id: "g10", icon: "💛", name: "Poszukiwacz złota", desc: "Kliknij 10 złotych orzeszków", ok: stat("golden", 10) },
+    { id: "run", icon: "🏃", name: "Łowca chomików", desc: "Złap uciekającego chomika", ok: stat("caught", 1) },
+    { id: "rain", icon: "🧺", name: "Pełny koszyk", desc: "Złap 50 orzeszków z deszczu", ok: stat("drops", 50) },
+    { id: "fix", icon: "🛠️", name: "Admin na dyżurze", desc: "Napraw awarię Maszynowni", ok: stat("fixed", 1) },
+    { id: "jack", icon: "🎰", name: "Jackpot", desc: "Wygraj ×10 w Kole chomika", ok: stat("jackpot", 1) },
+    { id: "broke", icon: "💸", name: "All in", desc: "Przegraj w gambie wszystko (min. 1 tys.)", ok: stat("broke", 1) },
+    { id: "mcp", icon: "⛏️", name: "Na serwerze", desc: "Graj, gdy ktoś jest na serwerze Minecraft", ok: function () { return mcPlayers > 0; } },
+    { id: "sea", icon: "🎃", name: "Sezonowiec", desc: "Graj podczas eventu sezonowego", ok: function () { return !!SEASON; } },
+    { id: "p1", icon: "🌱", name: "Nowy początek", desc: "Przeprowadź norę", ok: stat("prestige", 1) },
+    { id: "p5", icon: "🧳", name: "Wędrowny chomik", desc: "Przeprowadź norę 5 razy", ok: stat("prestige", 5) },
+    { id: "hr", icon: "⏰", name: "Jeszcze jedno kliknięcie", desc: "Graj przez godzinę", ok: stat("time", 3600) }
+  ];
+
+  function fresh() { return { nuts: 0, total: 0, run: 0, seeds: 0, owned: {}, ups: {}, ach: {}, stats: {}, last: 0 }; }
+  function bump(k) { state.stats[k] = (state.stats[k] || 0) + 1; }
+  function achMult() { return 1 + 0.01 * Object.keys(state.ach).length; }
+  function seedMult() { return 1 + 0.03 * state.seeds; }
+  function seedGain() { return Math.floor(Math.cbrt(state.run / 1e6)); }
+  function earn(n) {
+    state.nuts += n;
+    state.total += n;
+    state.run += n;
+  }
+
   var state = load();
   var rows = {};
+
+  // Eventy: chwilowe bonusy, awaria, gracze MC i sezon
+  var fx = { cps: 1, cpsUntil: 0, click: 1, clickUntil: 0, outage: false };
+  var mcPlayers = 0;
+  var BIRTHDAY = null; // dzień urodzin projektu jako "MM-DD", np. "05-17"
+
+  function season() {
+    var t = new Date();
+    var md = ("0" + (t.getMonth() + 1)).slice(-2) + "-" + ("0" + t.getDate()).slice(-2);
+    if (BIRTHDAY && md === BIRTHDAY) return { id: "birthday", icon: "🎂", name: "Urodziny projektu", cps: 2 };
+    if (md >= "10-25" && md <= "11-02") return { id: "halloween", icon: "🎃", name: "Halloween", cps: 1 };
+    if (md >= "12-15" && md <= "12-31") return { id: "xmas", icon: "🎁", name: "Święta", cps: 1 };
+    return null;
+  }
+  var SEASON = season();
+  var ITEM = SEASON && SEASON.id !== "birthday" ? SEASON.icon : "🌰";
+
+  function eventCpsMult() {
+    var m = Date.now() < fx.cpsUntil ? fx.cps : 1;
+    if (fx.outage) m *= 0.5;
+    if (SEASON) m *= SEASON.cps;
+    return m * (1 + 0.1 * mcPlayers);
+  }
+  function eventClickMult() { return Date.now() < fx.clickUntil ? fx.click : 1; }
 
   var compact = new Intl.NumberFormat("pl-PL", { notation: "compact", maximumFractionDigits: 2 });
   function fmt(n) {
@@ -59,7 +133,7 @@
   }
 
   function load() {
-    var s = { nuts: 0, total: 0, owned: {}, ups: {} };
+    var s = fresh();
     try {
       var raw = JSON.parse(localStorage.getItem(KEY));
       if (raw && isFinite(raw.nuts) && raw.nuts >= 0) s.nuts = raw.nuts;
@@ -72,11 +146,22 @@
       ONCE.forEach(function (o) {
         if (raw && raw.ups && raw.ups[o.id] === true) s.ups[o.id] = true;
       });
+      ACH.forEach(function (a) {
+        if (raw && raw.ach && raw.ach[a.id] === true) s.ach[a.id] = true;
+      });
+      STATS.forEach(function (k) {
+        var v = raw && raw.stats && raw.stats[k];
+        if (Number.isInteger(v) && v > 0) s.stats[k] = v;
+      });
+      if (raw && isFinite(raw.last) && raw.last > 0) s.last = raw.last;
+      s.run = raw && isFinite(raw.run) && raw.run >= 0 ? Math.min(raw.run, s.total) : s.total;
+      if (raw && Number.isInteger(raw.seeds) && raw.seeds > 0) s.seeds = raw.seeds;
     } catch (e) { /* brak lub uszkodzony zapis */ }
     return s;
   }
 
   function save() {
+    state.last = Date.now();
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* brak dostępu do storage */ }
   }
 
@@ -92,13 +177,13 @@
   }
   function perSecond() {
     var sum = UPGRADES.reduce(function (a, u) { return a + (u.cps || 0) * count(u) * buildingMult(u); }, 0);
-    return sum * globalMult();
+    return sum * globalMult() * eventCpsMult() * achMult() * seedMult();
   }
   function perClick() {
     var base = UPGRADES.reduce(function (a, u) { return a + (u.click || 0) * count(u); }, 1);
     var mult = ONCE.reduce(function (a, o) { return a * (bought(o) && o.clickMult ? o.clickMult : 1); }, 1);
     var pct = ONCE.reduce(function (a, o) { return a + (bought(o) && o.clickPct ? o.clickPct : 0); }, 0);
-    return base * mult + perSecond() * pct;
+    return base * mult * eventClickMult() * seedMult() + perSecond() * pct;
   }
 
   function el(tag, cls, text) {
@@ -112,10 +197,12 @@
   var score = el("div", "score");
   var scoreNum = el("strong", "score__num", "0");
   var scoreRate = el("small", "score__rate", "");
+  var scoreFx = el("small", "score__fx", "");
   score.appendChild(scoreNum);
-  score.appendChild(d.createTextNode(" orzeszków 🌰"));
+  score.appendChild(d.createTextNode(" orzeszków " + ITEM));
   score.appendChild(d.createElement("br"));
   score.appendChild(scoreRate);
+  score.appendChild(scoreFx);
   wrap.appendChild(score);
 
   // Sklep
@@ -159,11 +246,38 @@
     rows[u.id] = { btn: b, cnt: cnt, price: price };
   });
 
+  var prestige = el("button", "up prestige");
+  prestige.type = "button";
+  var prCount = el("span", "up__count");
+  var prDesc = el("span", "up__desc");
+  prestige.appendChild(el("span", "up__icon", "🌱"));
+  prestige.appendChild(el("span", "up__name", "Przeprowadzka nory"));
+  prestige.appendChild(prCount);
+  prestige.appendChild(prDesc);
+  prestige.addEventListener("click", function () {
+    var g = seedGain();
+    if (g < 1) return;
+    if (!confirm("Przeprowadzka zresetuje orzeszki, budynki i ulepszenia (ranking i osiągnięcia zostają). " +
+      "Dostaniesz " + g + " złotych nasion: +" + g * 3 + "% produkcji i klikania na stałe. Kontynuować?")) return;
+    state.seeds += g;
+    state.nuts = 0;
+    state.run = 0;
+    state.owned = {};
+    state.ups = {};
+    fx.cpsUntil = fx.clickUntil = 0;
+    bump("prestige");
+    sfx("ach");
+    announce("🌱 Nowa nora! +" + g + " złotych nasion");
+    save();
+    render();
+  });
+  list.appendChild(prestige);
+
   var reset = el("button", "shop__reset", "Zacznij od nowa");
   reset.type = "button";
   reset.addEventListener("click", function () {
     if (!confirm("Na pewno usunąć cały postęp?")) return;
-    state = { nuts: 0, total: 0, owned: {}, ups: {} };
+    state = fresh();
     save();
     render();
   });
@@ -305,6 +419,9 @@
         acc += g.outcomes[i][0];
         if (r < acc) { mult = g.outcomes[i][1]; break; }
       }
+      if (mult === 10) bump("jackpot");
+      if (mult === 0 && state.nuts < 1 && bet >= 1000) bump("broke");
+      sfx(mult > 1 ? "win" : mult === 0 ? "lose" : "buy");
       state.nuts += bet * mult;
       gambleMsg.textContent = mult === 0 ? "Przegrana: −" + fmt(bet) + " 🌰"
         : mult === 1 ? "Zwrot stawki."
@@ -329,6 +446,135 @@
   shop.appendChild(list);
   shop.appendChild(board);
   shop.appendChild(gamble);
+
+  var achToggle = el("button", "shop__toggle", "🏆");
+  achToggle.type = "button";
+  achToggle.setAttribute("aria-label", "Osiągnięcia");
+  achToggle.setAttribute("aria-controls", "shop-ach");
+  tabs.insertBefore(achToggle, tabs.firstChild);
+  var achPanel = el("div", "shop__list");
+  achPanel.id = "shop-ach";
+  var achHead = el("p", "board__msg");
+  var achList = el("div", "once");
+  achPanel.appendChild(achHead);
+  achPanel.appendChild(achList);
+  shop.appendChild(achPanel);
+
+  function renderAch() {
+    var n = Object.keys(state.ach).length;
+    achHead.textContent = n + " / " + ACH.length + " · bonus +" + n + "% produkcji";
+    achList.textContent = "";
+    ACH.forEach(function (a) {
+      var got = !!state.ach[a.id];
+      var row = el("div", "up ach-row" + (got ? "" : " is-locked"));
+      row.appendChild(el("span", "up__icon", got ? a.icon : "❓"));
+      row.appendChild(el("span", "up__name", got ? a.name : "???"));
+      row.appendChild(el("span", "up__count"));
+      row.appendChild(el("span", "up__desc", a.desc));
+      achList.appendChild(row);
+    });
+  }
+
+  function checkAch() {
+    var changed = false;
+    ACH.forEach(function (a) {
+      if (state.ach[a.id] || !a.ok()) return;
+      state.ach[a.id] = true;
+      changed = true;
+      announce("🏆 Osiągnięcie: " + a.name + " (+1% produkcji)");
+    });
+    if (changed) {
+      sfx("ach");
+      save();
+      if (view === "ach") renderAch();
+    }
+  }
+
+  var statsToggle = el("button", "shop__toggle", "📊");
+  statsToggle.type = "button";
+  statsToggle.setAttribute("aria-label", "Statystyki");
+  statsToggle.setAttribute("aria-controls", "shop-stats");
+  tabs.insertBefore(statsToggle, achToggle.nextSibling);
+  var statsPanel = el("div", "shop__list");
+  statsPanel.id = "shop-stats";
+  var statsList = el("dl", "stats");
+  statsPanel.appendChild(statsList);
+  shop.appendChild(statsPanel);
+
+  function renderStats() {
+    var s = state.stats, tm = s.time || 0;
+    var items = [
+      ["Zebrane łącznie", fmt(state.total)],
+      ["W tej norze", fmt(state.run)],
+      ["Produkcja", fmt(perSecond()) + "/s"],
+      ["Za kliknięcie", fmt(perClick())],
+      ["Kliknięcia", fmt(s.clicks || 0)],
+      ["Budynki", fmt(buildings())],
+      ["Ulepszenia", Object.keys(state.ups).length + " / " + ONCE.length],
+      ["Osiągnięcia", Object.keys(state.ach).length + " / " + ACH.length],
+      ["Złote nasiona", state.seeds + " (+" + state.seeds * 3 + "%)"],
+      ["Przeprowadzki", fmt(s.prestige || 0)],
+      ["Złote orzeszki", fmt(s.golden || 0)],
+      ["Złapane chomiki", fmt(s.caught || 0)],
+      ["Orzeszki z deszczu", fmt(s.drops || 0)],
+      ["Naprawione awarie", fmt(s.fixed || 0)],
+      ["Jackpoty", fmt(s.jackpot || 0)],
+      ["Czas gry", Math.floor(tm / 3600) + " h " + Math.floor(tm % 3600 / 60) + " min"]
+    ];
+    statsList.textContent = "";
+    items.forEach(function (it) {
+      statsList.appendChild(el("dt", "", it[0]));
+      statsList.appendChild(el("dd", "", it[1]));
+    });
+  }
+
+  // Dźwięki generowane przez Web Audio, domyślnie wyłączone
+  var soundOn = false;
+  try { soundOn = localStorage.getItem(KEY + "-sound") === "1"; } catch (e) { /* brak storage */ }
+  var actx = null;
+  var SFX = {
+    click: [[660, 0, 0.05, "triangle", 0.03]],
+    buy: [[700, 0, 0.06, "triangle", 0.05], [1000, 0.05, 0.08, "triangle", 0.05]],
+    golden: [[880, 0, 0.15], [1320, 0.1, 0.3]],
+    win: [[523, 0, 0.1], [784, 0.08, 0.25]],
+    lose: [[300, 0, 0.25, "sawtooth", 0.04], [200, 0.2, 0.35, "sawtooth", 0.04]],
+    ach: [[523, 0, 0.15], [659, 0.1, 0.15], [784, 0.2, 0.35]],
+    alarm: [[440, 0, 0.2, "square", 0.04], [330, 0.25, 0.2, "square", 0.04], [440, 0.5, 0.2, "square", 0.04]]
+  };
+  function tone(freq, start, dur, type, vol) {
+    var o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + start;
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || 0.08, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    g.connect(actx.destination);
+    o.start(t);
+    o.stop(t + dur);
+  }
+  function sfx(name) {
+    if (!soundOn) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      SFX[name].forEach(function (s) { tone(s[0], s[1], s[2], s[3], s[4]); });
+    } catch (e) { /* brak Web Audio */ }
+  }
+  var soundToggle = el("button", "shop__toggle");
+  soundToggle.type = "button";
+  function soundLabel() {
+    soundToggle.textContent = soundOn ? "🔊" : "🔇";
+    soundToggle.setAttribute("aria-label", soundOn ? "Wyłącz dźwięk" : "Włącz dźwięk");
+    soundToggle.setAttribute("aria-pressed", String(soundOn));
+  }
+  soundToggle.addEventListener("click", function () {
+    soundOn = !soundOn;
+    try { localStorage.setItem(KEY + "-sound", soundOn ? "1" : "0"); } catch (e) { /* brak storage */ }
+    soundLabel();
+    sfx("buy");
+  });
+  soundLabel();
+  tabs.insertBefore(soundToggle, achToggle);
   d.body.appendChild(shop);
 
   function setView(v) {
@@ -336,6 +582,12 @@
     list.hidden = v !== "up";
     board.hidden = v !== "board";
     gamble.hidden = v !== "gamble";
+    achPanel.hidden = v !== "ach";
+    statsPanel.hidden = v !== "stats";
+    statsToggle.setAttribute("aria-expanded", String(v === "stats"));
+    if (v === "stats") renderStats();
+    achToggle.setAttribute("aria-expanded", String(v === "ach"));
+    if (v === "ach") renderAch();
     toggle.setAttribute("aria-expanded", String(v === "up"));
     boardToggle.setAttribute("aria-expanded", String(v === "board"));
     gambleToggle.setAttribute("aria-expanded", String(v === "gamble"));
@@ -344,6 +596,8 @@
   toggle.addEventListener("click", function () { setView(view === "up" ? null : "up"); });
   boardToggle.addEventListener("click", function () { setView(view === "board" ? null : "board"); });
   gambleToggle.addEventListener("click", function () { setView(view === "gamble" ? null : "gamble"); });
+  achToggle.addEventListener("click", function () { setView(view === "ach" ? null : "ach"); });
+  statsToggle.addEventListener("click", function () { setView(view === "stats" ? null : "stats"); });
   setView(window.matchMedia("(min-width: 800px)").matches ? "up" : null);
 
   function buy(u) {
@@ -351,6 +605,7 @@
     if (state.nuts < c) return;
     state.nuts -= c;
     state.owned[u.id] = count(u) + 1;
+    sfx("buy");
     save();
     render();
   }
@@ -359,6 +614,7 @@
     if (bought(o) || state.nuts < o.cost) return;
     state.nuts -= o.cost;
     state.ups[o.id] = true;
+    sfx("buy");
     save();
     render();
   }
@@ -371,6 +627,22 @@
       ? cps.toLocaleString("pl-PL", { maximumFractionDigits: 1 }) + " na sekundę"
       : "kliknij logo!";
     d.title = fmt(n) + " orzeszków — Chomicza Nora";
+
+    var t = Date.now(), parts = [];
+    if (t < fx.cpsUntil) parts.push("✨ ×" + fx.cps + " produkcji (" + Math.ceil((fx.cpsUntil - t) / 1000) + " s)");
+    if (t < fx.clickUntil) parts.push("✨ ×" + fx.click + " za klik (" + Math.ceil((fx.clickUntil - t) / 1000) + " s)");
+    if (fx.outage) parts.push("⚠️ awaria −50%");
+    if (mcPlayers) parts.push("⛏️ +" + mcPlayers * 10 + "% (gracze MC)");
+    if (SEASON) parts.push(SEASON.icon + " " + SEASON.name + (SEASON.cps > 1 ? " ×" + SEASON.cps : ""));
+    scoreFx.textContent = parts.join(" · ");
+
+    var sg = seedGain();
+    prCount.textContent = state.seeds ? "🌱" + state.seeds : "";
+    prDesc.textContent = sg >= 1
+      ? "Reset za +" + sg + " złotych nasion (+" + sg * 3 + "% na stałe)"
+      : "Dostępna od 1 mln zebranych w tej norze";
+    prestige.classList.toggle("is-locked", sg < 1);
+    prestige.setAttribute("aria-disabled", String(sg < 1));
 
     var visible = ONCE.filter(function (o) { return !bought(o) && o.ok(); });
     var key = visible.map(function (o) { return o.id; }).join();
@@ -419,8 +691,9 @@
 
   hit.addEventListener("click", function (e) {
     var gain = perClick();
-    state.nuts += gain;
-    state.total += gain;
+    bump("clicks");
+    earn(gain);
+    sfx("click");
     var x = e.clientX, y = e.clientY;
     if (!x && !y) {
       var rect = hit.getBoundingClientRect();
@@ -431,11 +704,197 @@
     render();
   });
 
+  function gain(n, x, y) {
+    earn(n);
+    if (x !== undefined) pop(x, y, "+" + fmt(n));
+    render();
+  }
+
+  var toast = el("div", "evt-toast");
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+  d.body.appendChild(toast);
+  var toastT;
+  function announce(text) {
+    toast.textContent = text;
+    toast.classList.add("is-on");
+    clearTimeout(toastT);
+    toastT = setTimeout(function () { toast.classList.remove("is-on"); }, 4000);
+  }
+
+  // Ruch przez rAF, bo s.css wyłącza animacje CSS przy prefers-reduced-motion
+  function animate(node, dur, step, done) {
+    var start = performance.now();
+    function f(t) {
+      if (!node.isConnected) return;
+      var p = Math.min(1, (t - start) / dur);
+      step(p);
+      if (p < 1) requestAnimationFrame(f); else done();
+    }
+    requestAnimationFrame(f);
+  }
+
+  function spawnGolden() {
+    var b = el("button", "evt-golden", ITEM);
+    b.type = "button";
+    b.setAttribute("aria-label", "Złoty orzeszek");
+    b.style.left = (10 + Math.random() * 75) + "vw";
+    b.style.top = (15 + Math.random() * 65) + "vh";
+    var gone = setTimeout(function () { b.remove(); }, 10000);
+    sfx("golden");
+    b.addEventListener("click", function (e) {
+      clearTimeout(gone);
+      b.remove();
+      bump("golden");
+      sfx("win");
+      var r = Math.random();
+      if (r < 0.45) {
+        fx.cps = 7;
+        fx.cpsUntil = Date.now() + 60000;
+        announce("✨ Szał produkcji! ×7 przez 60 s");
+      } else if (r < 0.65) {
+        fx.click = 100;
+        fx.clickUntil = Date.now() + 10000;
+        announce("✨ Szał klikania! ×100 przez 10 s");
+      } else {
+        var n = Math.min(state.nuts * 0.15, perSecond() * 900) + 13;
+        gain(n, e.clientX, e.clientY);
+        announce("✨ Szczęście! +" + fmt(n) + " " + ITEM);
+      }
+      render();
+    });
+    d.body.appendChild(b);
+  }
+
+  function spawnHamster() {
+    var b = el("button", "evt-runner", "🐹");
+    b.type = "button";
+    b.setAttribute("aria-label", "Uciekający chomik");
+    var ltr = Math.random() < 0.5;
+    d.body.appendChild(b);
+    b.addEventListener("click", function (e) {
+      b.remove();
+      bump("caught");
+      sfx("win");
+      var n = Math.max(perSecond() * 60, perClick() * 20);
+      gain(n, e.clientX, e.clientY);
+      announce("🐹 Złapany! +" + fmt(n) + " " + ITEM);
+    });
+    animate(b, 8000, function (p) {
+      var x = ltr ? p : 1 - p;
+      b.style.transform = "translateX(" + (x * (window.innerWidth + 80) - 80) + "px)";
+    }, function () { b.remove(); });
+  }
+
+  var raining = false;
+  function startRain() {
+    raining = true;
+    announce(ITEM + " Deszcz orzeszków! Łap, ile się da!");
+    var end = Date.now() + 15000;
+    var iv = setInterval(function () {
+      if (Date.now() > end) { clearInterval(iv); raining = false; return; }
+      var b = el("button", "evt-drop", ITEM);
+      b.type = "button";
+      b.tabIndex = -1;
+      b.setAttribute("aria-hidden", "true");
+      b.style.left = (3 + Math.random() * 90) + "vw";
+      d.body.appendChild(b);
+      b.addEventListener("pointerdown", function (e) {
+        b.remove();
+        bump("drops");
+        sfx("click");
+        gain(Math.max(perSecond() * 2, perClick() * 3), e.clientX, e.clientY);
+      });
+      animate(b, 3500 + Math.random() * 2000, function (p) {
+        b.style.transform = "translateY(" + p * (window.innerHeight + 80) + "px)";
+      }, function () { b.remove(); });
+    }, 350);
+  }
+
+  function startOutage() {
+    fx.outage = true;
+    sfx("alarm");
+    var need = 20;
+    var box = el("div", "evt-outage");
+    var b = el("button", "evt-fix", "🔧 Napraw (" + need + ")");
+    b.type = "button";
+    box.appendChild(el("span", "", "⚠️ Serwer padł! Produkcja −50%"));
+    box.appendChild(b);
+    d.body.appendChild(box);
+    var timeout = setTimeout(function () { end(false); }, 45000);
+    function end(fixed) {
+      clearTimeout(timeout);
+      fx.outage = false;
+      box.remove();
+      if (fixed) {
+        bump("fixed");
+        sfx("ach");
+        var n = Math.max(perSecond() * 120, perClick() * 30);
+        gain(n);
+        announce("🔧 Naprawione! Premia +" + fmt(n) + " " + ITEM);
+      } else {
+        announce("Serwer wstał sam. Następnym razem napraw szybciej!");
+      }
+      render();
+    }
+    b.addEventListener("click", function () {
+      if (need <= 0) return;
+      need--;
+      b.textContent = "🔧 Napraw (" + need + ")";
+      if (need === 0) end(true);
+    });
+    render();
+  }
+
+  function confetti() {
+    var colors = ["#f43f5e", "#fcd34d", "#22c55e", "#3b82f6", "#a855f7"];
+    for (var i = 0; i < 60; i++) (function (i) {
+      var c = el("span", "confetti");
+      c.style.left = Math.random() * 100 + "vw";
+      c.style.background = colors[i % colors.length];
+      d.body.appendChild(c);
+      var spin = Math.random() * 720 - 360, drift = Math.random() * 120 - 60;
+      animate(c, 2500 + Math.random() * 2000, function (p) {
+        c.style.transform = "translate(" + drift * p + "px," + p * (window.innerHeight + 40) + "px) rotate(" + spin * p + "deg)";
+      }, function () { c.remove(); });
+    })(i);
+  }
+
+  var nextEvent = Date.now() + 60000 + Math.random() * 60000;
   setInterval(function () {
+    checkAch();
+    if (!d.hidden) bump("time");
+    if (view === "stats" && !d.hidden) renderStats();
+    if (d.hidden || Date.now() < nextEvent) return;
+    nextEvent = Date.now() + 120000 + Math.random() * 180000;
+    var pool = [[spawnGolden, 5], [spawnHamster, 3]];
+    if (!raining) pool.push([startRain, 2]);
+    if (!fx.outage && perSecond() > 0) pool.push([startOutage, 1]);
+    var r = Math.random() * pool.reduce(function (a, p) { return a + p[1]; }, 0);
+    for (var i = 0; i < pool.length; i++) {
+      r -= pool[i][1];
+      if (r < 0) { pool[i][0](); break; }
+    }
+  }, 1000);
+
+  if (SEASON) {
+    d.body.classList.add("season-" + SEASON.id);
+    if (SEASON.id === "xmas") d.body.appendChild(el("div", "snow"));
+    setTimeout(function () {
+      announce(SEASON.icon + " " + SEASON.name + (SEASON.cps > 1 ? "! Produkcja ×" + SEASON.cps : "!"));
+      if (SEASON.id === "birthday") confetti();
+    }, 1500);
+  }
+
+  // Przyrost liczony z upływu czasu, bo przeglądarki spowalniają timery w kartach w tle
+  var lastTick = Date.now();
+  setInterval(function () {
+    var t = Date.now();
+    var dt = Math.min(60, Math.max(0, (t - lastTick) / 1000));
+    lastTick = t;
     var cps = perSecond();
     if (!cps) return;
-    state.nuts += cps / 10;
-    state.total += cps / 10;
+    earn(cps * dt);
     render();
   }, 100);
 
@@ -456,16 +915,20 @@
           if (j && j.online) {
             var p = j.players || {};
             mcBtn.dataset.state = "online";
+            mcPlayers = Math.max(0, Math.min(20, Math.floor(Number(p.online) || 0)));
             mcLabel = "Minecraft " + Number(p.online || 0) + "/" + Number(p.max || 0);
             mcBtn.title = (j.version ? "Wersja: " + String(j.version) + ". " : "") + "Kliknij, aby skopiować adres serwera";
           } else {
             mcBtn.dataset.state = "offline";
+            mcPlayers = 0;
             mcLabel = "Minecraft offline";
           }
           mcText.textContent = mcLabel;
+          render();
         })
         .catch(function () {
           mcBtn.dataset.state = "unknown";
+          mcPlayers = 0;
           mcLabel = "Minecraft";
           mcText.textContent = mcLabel;
         });
@@ -523,6 +986,20 @@
   });
   setInterval(checkUpdate, 120000);
   checkUpdate();
+
+  // Zysk z nieobecności: 50% produkcji, maks. 8 godzin
+  var away = state.last ? Math.min(8 * 3600, (Date.now() - state.last) / 1000) : 0;
+  if (away > 60) {
+    var earned = perSecond() * away * 0.5;
+    if (earned >= 1) {
+      earn(earned);
+      var h = Math.floor(away / 3600), m = Math.floor(away % 3600 / 60);
+      setTimeout(function () {
+        announce("💤 Przez " + (h ? h + " h " : "") + m + " min chomiki zebrały +" + fmt(earned) + " " + ITEM);
+      }, 3000);
+    }
+  }
+  save();
 
   render();
 })();
