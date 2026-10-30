@@ -32,5 +32,11 @@ td.actions button{padding:.3rem .6rem;font-size:.8rem}
 .inline-edit{display:flex;gap:.35rem}
 .inline-edit input{min-width:8rem;padding:.3rem .5rem}
 .inline-edit button{padding:.3rem .6rem;font-size:.8rem}
+.filter-row{align-items:center}
+.check{display:flex;align-items:center;gap:.35rem;white-space:nowrap;color:#9ca3af}
+.check input{width:auto}
+tr.flagged td{background:rgba(185,28,28,.12)}
+td.flag{max-width:260px;font-size:.8rem;color:#fca5a5}
+td.flag button{margin-top:.25rem;padding:.2rem .5rem;font-size:.75rem}
 .list{margin:0;padding:0;list-style:none}
 .list li{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.08)}

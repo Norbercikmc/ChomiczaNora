@@ -858,7 +858,35 @@
     setTimeout(function () { p.remove(); }, 800);
   }
 
+  // Antycheat: maks. 20 kliknięć/s i odrzucanie podejrzanie równych odstępów (autoklikery)
+  var clickTimes = [];
+  var botWarned = false;
+  function botClick() {
+    if (!botWarned) {
+      botWarned = true;
+      announce("🤖 Wykryto autoklikacz — te kliknięcia się nie liczą.");
+      setTimeout(function () { botWarned = false; }, 30000);
+    }
+    return false;
+  }
+  function humanClick() {
+    var t = performance.now();
+    clickTimes.push(t);
+    if (clickTimes.length > 30) clickTimes.shift();
+    var recent = clickTimes.filter(function (x) { return t - x < 1000; }).length;
+    if (recent > 20) return botClick();
+    if (clickTimes.length >= 25) {
+      var gaps = [];
+      for (var i = 1; i < clickTimes.length; i++) gaps.push(clickTimes[i] - clickTimes[i - 1]);
+      var mean = gaps.reduce(function (a, g) { return a + g; }, 0) / gaps.length;
+      var sd = Math.sqrt(gaps.reduce(function (a, g) { return a + (g - mean) * (g - mean); }, 0) / gaps.length);
+      if (mean < 150 && sd < 2) return botClick();
+    }
+    return true;
+  }
+
   hit.addEventListener("click", function (e) {
+    if (!e.isTrusted || !humanClick()) return;
     var gain = perClick();
     bump("clicks");
     addXp(0.2);
@@ -913,6 +941,7 @@
     var gone = setTimeout(function () { b.remove(); }, 10000);
     sfx("golden");
     b.addEventListener("click", function (e) {
+      if (!e.isTrusted) return;
       clearTimeout(gone);
       b.remove();
       bump("golden");
@@ -944,6 +973,7 @@
     var ltr = Math.random() < 0.5;
     d.body.appendChild(b);
     b.addEventListener("click", function (e) {
+      if (!e.isTrusted) return;
       b.remove();
       bump("caught");
       addXp(20);
@@ -972,6 +1002,7 @@
       b.style.left = (3 + Math.random() * 90) + "vw";
       d.body.appendChild(b);
       b.addEventListener("pointerdown", function (e) {
+        if (!e.isTrusted) return;
         b.remove();
         bump("drops");
         addXp(2);
@@ -1011,8 +1042,8 @@
       }
       render();
     }
-    b.addEventListener("click", function () {
-      if (need <= 0) return;
+    b.addEventListener("click", function (e) {
+      if (!e.isTrusted || need <= 0) return;
       need--;
       b.textContent = "🔧 Napraw (" + need + ")";
       if (need === 0) end(true);

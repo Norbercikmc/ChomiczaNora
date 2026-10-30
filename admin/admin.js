@@ -101,11 +101,13 @@
 
   function renderScores() {
     var q = $("filter").value.trim().toLowerCase();
+    var onlyFlagged = $("only-flagged").checked;
     var tb = $("scores");
     tb.textContent = "";
     scores.forEach(function (s, i) {
-      var nick = String(s.nick), id = String(s.id);
+      var nick = String(s.nick), id = String(s.id), flags = Number(s.flags) || 0;
       if (q && nick.toLowerCase().indexOf(q) < 0 && id.indexOf(q) < 0) return;
+      if (onlyFlagged && !flags) return;
       var tr = d.createElement("tr");
       tr.appendChild(el("td", String(i + 1)));
       var nickCell = el("td", nick);
@@ -114,6 +116,13 @@
       var idCell = el("td", id.slice(0, 8) + "…", "mono");
       idCell.title = id;
       tr.appendChild(idCell);
+      var flagCell = el("td", undefined, "flag");
+      if (flags) {
+        tr.classList.add("flagged");
+        flagCell.appendChild(el("span", "⚠️ " + flags + "× — " + String(s.flag || "")));
+        flagCell.appendChild(btn("Wyczyść", function () { action("/admin/clearflag", { id: id }, "Wyczyszczono flagę."); }, "ghost"));
+      }
+      tr.appendChild(flagCell);
       var act = el("td", undefined, "actions");
       act.appendChild(btn("Zmień nick", function () { editNick(nickCell, id, nick); }, "ghost"));
       act.appendChild(btn("Usuń", function () {
@@ -130,7 +139,7 @@
     if (!tb.children.length) {
       var tr = d.createElement("tr");
       var td = el("td", scores.length ? "Brak wyników dla filtra." : "Ranking jest pusty.", "muted");
-      td.colSpan = 5;
+      td.colSpan = 6;
       tr.appendChild(td);
       tb.appendChild(tr);
     }
@@ -228,6 +237,8 @@
       var apex = r[2];
       row("Adres " + MC_PUBLIC, apex && apex.online ? "działa" : "nie działa — brak rekordu SRV _minecraft._tcp", apex && apex.online ? "ok" : "bad");
       row("Wpisy w rankingu", String(scores.length));
+      var flagged = scores.filter(function (s) { return Number(s.flags) > 0; }).length;
+      row("Podejrzane wpisy", String(flagged), flagged ? "bad" : "ok");
     });
   }
 
@@ -271,6 +282,7 @@
   });
   $("logout").addEventListener("click", function () { logout("Wylogowano."); });
   $("filter").addEventListener("input", renderScores);
+  $("only-flagged").addEventListener("change", renderScores);
   $("refresh-scores").addEventListener("click", function () { $("scores-msg").textContent = ""; refreshScores(); loadBans(); });
   $("refresh-status").addEventListener("click", loadStatus);
 
