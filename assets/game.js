@@ -397,8 +397,12 @@
 
   // Gamba: tylko wirtualne orzeszki, wygrane nie liczą się do rankingu (state.total)
   var GAMES = [
-    { icon: "🪙", name: "Rzut monetą", desc: "48% szans na ×2", outcomes: [[0.48, 2], [0.52, 0]] },
-    { icon: "🎡", name: "Koło chomika", desc: "×0 / ×1 / ×2 / ×3 / ×10", outcomes: [[0.58, 0], [0.15, 1], [0.15, 2], [0.10, 3], [0.02, 10]] }
+    { kind: "coin", icon: "🪙", name: "Rzut monetą", desc: "48% szans na ×2", outcomes: [[0.48, 2], [0.52, 0]] },
+    // Te same szanse co wcześniej (×0 58%, ×1 15%, ×2 15%, ×3 10%, ×10 2%), rozłożone na wycinki koła
+    { kind: "wheel", icon: "🎡", name: "Koło chomika", desc: "×0 / ×1 / ×2 / ×3 / ×10", outcomes: [
+      [0.145, 0], [0.075, 1], [0.075, 2], [0.145, 0], [0.05, 3], [0.02, 10],
+      [0.145, 0], [0.075, 1], [0.075, 2], [0.145, 0], [0.05, 3]
+    ] }
   ];
   var gamble = el("div", "shop__list gamble");
   gamble.id = "shop-gamble";
@@ -422,6 +426,32 @@
   gamble.appendChild(betInput);
   gamble.appendChild(quick);
 
+  var stage = el("div", "gstage");
+  stage.setAttribute("aria-hidden", "true");
+  var coin = el("div", "coin");
+  coin.appendChild(el("span", "coin__face", ITEM));
+  coin.appendChild(el("span", "coin__face coin__face--back", "💀"));
+  var wheelBox = el("div", "wheel-box");
+  var wheel = el("div", "wheel");
+  wheelBox.appendChild(el("span", "wheel__ptr"));
+  wheelBox.appendChild(wheel);
+  stage.appendChild(coin);
+  stage.appendChild(wheelBox);
+  gamble.appendChild(stage);
+
+  var WHEEL_COLORS = { 0: "#374151", 1: "#3b82f6", 2: "#22c55e", 3: "#a855f7", 10: "#f59e0b" };
+  var stops = [], deg = 0;
+  GAMES[1].outcomes.forEach(function (o) {
+    var w = o[0] * 360;
+    stops.push(WHEEL_COLORS[o[1]] + " " + deg + "deg " + (deg + w) + "deg");
+    var lbl = el("span", "wheel__lbl", "×" + o[1]);
+    lbl.style.transform = "translate(-50%,-50%) rotate(" + (deg + w / 2) + "deg) translateY(-48px)";
+    wheel.appendChild(lbl);
+    deg += w;
+  });
+  wheel.style.background = "conic-gradient(" + stops.join(",") + ")";
+  var wheelRot = 0;
+
   var busy = false;
   function play(g) {
     if (busy) return;
@@ -430,25 +460,63 @@
     if (bet > Math.floor(state.nuts)) { gambleMsg.textContent = "Nie masz tylu orzeszków."; return; }
     busy = true;
     state.nuts -= bet;
-    gambleMsg.textContent = "🎲 Losowanie…";
     render();
-    setTimeout(function () {
-      var r = Math.random(), acc = 0, mult = 0;
-      for (var i = 0; i < g.outcomes.length; i++) {
-        acc += g.outcomes[i][0];
-        if (r < acc) { mult = g.outcomes[i][1]; break; }
+    var idx = pickOutcome(g.outcomes), mult = g.outcomes[idx][1];
+    var ease = function (p) { return 1 - Math.pow(1 - p, 3); };
+
+    if (g.kind === "coin") {
+      gambleMsg.textContent = "🪙 Rzut…";
+      var target = 1800 + (mult > 0 ? 0 : 180);
+      animate(coin, 1600, function (p) {
+        coin.style.transform = "translateY(" + -Math.sin(Math.PI * p) * 40 + "px) rotateY(" + ease(p) * target + "deg)";
+      }, function () { finishBet(bet, mult); });
+      return;
+    }
+
+    gambleMsg.textContent = "🎡 Kręcę…";
+    var start = 0;
+    for (var i = 0; i < idx; i++) start += g.outcomes[i][0] * 360;
+    var land = start + g.outcomes[idx][0] * 360 * (0.15 + 0.7 * Math.random());
+    var from = wheelRot;
+    // Pod wskaźnikiem (góra) jest kąt koła równy -obrót, więc kończymy na obrocie ≡ -land (mod 360)
+    var delta = 360 * 5 + ((-land - from) % 360 + 360) % 360;
+    var lastSlice = -1;
+    animate(wheel, 3500, function (p) {
+      wheelRot = from + delta * ease(p);
+      wheel.style.transform = "rotate(" + wheelRot + "deg)";
+      var under = (-wheelRot % 360 + 360) % 360, s = 0, acc = 0;
+      while (s < g.outcomes.length - 1 && under >= acc + g.outcomes[s][0] * 360) {
+        acc += g.outcomes[s][0] * 360;
+        s++;
       }
-      if (mult === 10) bump("jackpot");
-      if (mult === 0 && state.nuts < 1 && bet >= 1000) bump("broke");
-      sfx(mult > 1 ? "win" : mult === 0 ? "lose" : "buy");
-      state.nuts += bet * mult;
-      gambleMsg.textContent = mult === 0 ? "Przegrana: −" + fmt(bet) + " 🌰"
-        : mult === 1 ? "Zwrot stawki."
-        : "Wygrana ×" + mult + ": +" + fmt(bet * (mult - 1)) + " 🌰";
-      busy = false;
-      save();
-      render();
-    }, 600);
+      if (s !== lastSlice) { lastSlice = s; sfx("tick"); }
+    }, function () {
+      wheelRot %= 360;
+      wheel.style.transform = "rotate(" + wheelRot + "deg)";
+      finishBet(bet, mult);
+    });
+  }
+
+  function pickOutcome(outcomes) {
+    var r = Math.random(), acc = 0;
+    for (var i = 0; i < outcomes.length; i++) {
+      acc += outcomes[i][0];
+      if (r < acc) return i;
+    }
+    return outcomes.length - 1;
+  }
+
+  function finishBet(bet, mult) {
+    if (mult === 10) { bump("jackpot"); confetti(); }
+    if (mult === 0 && state.nuts < 1 && bet >= 1000) bump("broke");
+    sfx(mult > 1 ? "win" : mult === 0 ? "lose" : "buy");
+    state.nuts += bet * mult;
+    gambleMsg.textContent = mult === 0 ? "Przegrana: −" + fmt(bet) + " " + ITEM
+      : mult === 1 ? "Zwrot stawki."
+      : "Wygrana ×" + mult + ": +" + fmt(bet * (mult - 1)) + " " + ITEM;
+    busy = false;
+    save();
+    render();
   }
   GAMES.forEach(function (g) {
     var b = el("button", "up");
@@ -627,6 +695,7 @@
   var actx = null;
   var SFX = {
     click: [[660, 0, 0.05, "triangle", 0.03]],
+    tick: [[1400, 0, 0.02, "square", 0.015]],
     buy: [[700, 0, 0.06, "triangle", 0.05], [1000, 0.05, 0.08, "triangle", 0.05]],
     golden: [[880, 0, 0.15], [1320, 0.1, 0.3]],
     win: [[523, 0, 0.1], [784, 0.08, 0.25]],
