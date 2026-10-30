@@ -94,6 +94,11 @@
   function achMult() { return 1 + 0.01 * Object.keys(state.ach).length; }
   function seedMult() { return 1 + 0.03 * state.seeds; }
   function seedGain() { return Math.floor(Math.cbrt(state.run / 1e6)); }
+  function seedsWord(n) {
+    if (n === 1) return "złote nasiono";
+    var a = n % 10, b = n % 100;
+    return a >= 2 && a <= 4 && (b < 12 || b > 14) ? "złote nasiona" : "złotych nasion";
+  }
   function earn(n) {
     state.nuts += n;
     state.total += n;
@@ -258,7 +263,7 @@
     var g = seedGain();
     if (g < 1) return;
     if (!confirm("Przeprowadzka zresetuje orzeszki, budynki i ulepszenia (ranking i osiągnięcia zostają). " +
-      "Dostaniesz " + g + " złotych nasion: +" + g * 3 + "% produkcji i klikania na stałe. Kontynuować?")) return;
+      "Dostaniesz " + g + " " + seedsWord(g) + ": +" + g * 3 + "% produkcji i klikania na stałe. Kontynuować?")) return;
     state.seeds += g;
     state.nuts = 0;
     state.run = 0;
@@ -267,7 +272,7 @@
     fx.cpsUntil = fx.clickUntil = 0;
     bump("prestige");
     sfx("ach");
-    announce("🌱 Nowa nora! +" + g + " złotych nasion");
+    announce("🌱 Nowa nora! +" + g + " " + seedsWord(g));
     save();
     render();
   });
@@ -639,7 +644,7 @@
     var sg = seedGain();
     prCount.textContent = state.seeds ? "🌱" + state.seeds : "";
     prDesc.textContent = sg >= 1
-      ? "Reset za +" + sg + " złotych nasion (+" + sg * 3 + "% na stałe)"
+      ? "Reset za +" + sg + " " + seedsWord(sg) + " (+" + sg * 3 + "% na stałe)"
       : "Dostępna od 1 mln zebranych w tej norze";
     prestige.classList.toggle("is-locked", sg < 1);
     prestige.setAttribute("aria-disabled", String(sg < 1));
@@ -904,12 +909,14 @@
 
   // Status serwera Minecraft (publiczne API mcsrvstat.us)
   var MC_HOST = "chomiczanora.pl";
+  // Status z mc.*, bo domena główna nie ma jeszcze rekordu SRV _minecraft._tcp
+  var MC_QUERY = "mc.chomiczanora.pl";
   var mcBtn = d.getElementById("mc");
   if (mcBtn) {
     var mcText = mcBtn.querySelector(".mc-btn__text");
     var mcLabel = "Minecraft";
     var mcStatus = function () {
-      fetch("https://api.mcsrvstat.us/3/" + MC_HOST, { cache: "no-store" })
+      fetch("https://api.mcsrvstat.us/3/" + MC_QUERY, { cache: "no-store" })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (j) {
           if (j && j.online) {
