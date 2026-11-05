@@ -1,0 +1,86 @@
+name: Deploy game server
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - GameServer.java
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-server-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Compile game server
+        run: |
+          mkdir -p build
+          javac --add-modules jdk.httpserver -d build GameServer.java
+
+      - name: Prepare SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          if [[ -z "$VPS_SSH_KEY" || -z "$VPS_KNOWN_HOSTS" ]]; then
+            echo "Configure VPS_SSH_KEY and VPS_KNOWN_HOSTS repository secrets first." >&2
+            exit 1
+          fi
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+
+      - name: Upload source
+        run: scp -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes GameServer.java ubuntu@51.83.186.233:/home/ubuntu/GameServer.java.new
+
+      - name: Deploy and verify
+        run: |
+          ssh -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes ubuntu@51.83.186.233 'bash -se' <<'REMOTE'
+          set -eu
+          app_dir=/home/ubuntu/rankingwww
+          source_file="$app_dir/GameServer.java"
+          backup_file="$app_dir/GameServer.java.deploy-backup"
+          next_file="$app_dir/GameServer.java.deploy-next"
+
+          test -f "$source_file"
+          cp -p "$source_file" "$backup_file"
+          install -m 0644 "$HOME/GameServer.java.new" "$next_file"
+          mv -f "$next_file" "$source_file"
+          rm -f "$HOME/GameServer.java.new"
+
+          if ! sudo -n /usr/bin/systemctl restart game-server.service; then
+            cp -p "$backup_file" "$source_file"
+            sudo -n /usr/bin/systemctl restart game-server.service || true
+            exit 1
+          fi
+
+          for attempt in {1..15}; do
+            if curl --fail --silent --max-time 2 -o /dev/null http://127.0.0.1:8081/scores; then
+              rm -f "$backup_file"
+              echo "Game API deployment succeeded."
+              exit 0
+            fi
+            sleep 2
+          done
+
+          cp -p "$backup_file" "$source_file"
+          sudo -n /usr/bin/systemctl restart game-server.service || true
+          echo "Game API health check failed; previous source restored." >&2
+          exit 1
+          REMOTE
