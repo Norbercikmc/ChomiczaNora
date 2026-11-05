@@ -800,7 +800,7 @@
   var passPanel = el("div", "shop__list");
   passPanel.id = "shop-pass";
   var passHead = el("p", "board__msg");
-  var passInfo = el("p", "board__msg", "XP zdobywasz za czas gry, klikanie, zakupy, ulepszenia, eventy i osiągnięcia.");
+  var passInfo = el("p", "board__msg", "Punkty doświadczenia (PD) zdobywasz za czas gry, kliknięcia, zakupy, ulepszenia, wydarzenia i osiągnięcia.");
   var passBar = el("div", "pass__bar");
   var passFill = el("div", "pass__fill");
   passBar.appendChild(passFill);
@@ -816,16 +816,16 @@
 
   function passLevel() { return Math.floor(state.pass.xp / PASS_XP); }
   function passReward(lv) {
-    if (lv % 10 === 0) return { icon: "🌱", text: "+1 nasiono: stały bonus do produkcji i kliknięć" };
-    if (lv % 5 === 0) return { icon: "✨", text: "Produkcja ×7 przez 60 s; kolejne boosty wydłużają czas" };
-    return { icon: ITEM, text: "Orzeszki: większa z nagród — 5 min produkcji lub 100 kliknięć" };
+    if (lv % 10 === 0) return { icon: "🌱", text: "+1 złote nasiono — stały bonus do produkcji i kliknięć" };
+    if (lv % 5 === 0) return { icon: "✨", text: "Produkcja ×7 przez 60 sekund; kolejne nagrody wydłużają czas" };
+    return { icon: ITEM, text: "Dostaniesz tyle orzeszków, ile da 5 minut produkcji albo 100 kliknięć — wybierana jest wyższa wartość" };
   }
 
   function renderPass() {
     var lv = passLevel(), xp = state.pass.xp;
     var month = new Date().toLocaleDateString("pl-PL", { month: "long", year: "numeric" });
     passHead.textContent = "Karnet — " + month + " · poziom " + lv + " / " + PASS_LEVELS +
-      (lv < PASS_LEVELS ? " · " + Math.floor(xp % PASS_XP) + " / " + PASS_XP + " XP" : " · ukończony!");
+      (lv < PASS_LEVELS ? " · " + Math.floor(xp % PASS_XP) + " / " + PASS_XP + " PD" : " · ukończony!");
     passFill.style.width = (lv >= PASS_LEVELS ? 100 : (xp % PASS_XP) / PASS_XP * 100) + "%";
     var ready = lv - state.pass.claimed;
     passClaim.textContent = ready > 0 ? "Odbierz nagrody (" + ready + ")" : "Brak nagród do odebrania";
