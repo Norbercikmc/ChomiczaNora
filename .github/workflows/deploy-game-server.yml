@@ -1,6 +1,7 @@
 name: Deploy game server
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main

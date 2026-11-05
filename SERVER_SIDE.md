@@ -29,7 +29,7 @@ Kod wymaga wdrożenia razem z trasami reverse proxy i sekretem admina. Nie uruch
 
 ## Automatyczne wdrażanie na VPS
 
-Repozytorium zawiera workflow `.github/workflows/deploy-game-server.yml`. Po pushu zmian w `GameServer.java` na `main` workflow kompiluje kod, kopiuje tylko plik źródłowy do `/home/ubuntu/rankingwww`, restartuje `game-server.service` i sprawdza lokalny endpoint `/scores`. Przy błędzie health checku przywracana jest poprzednia wersja źródła. Pliki danych w `/var/lib/chomicza` nie są kopiowane ani kasowane.
+Repozytorium zawiera workflow `.github/workflows/deploy-game-server.yml`. Po pushu zmian w `GameServer.java` na `main` workflow kompiluje kod, kopiuje tylko plik źródłowy do `/home/ubuntu/rankingwww`, restartuje `game-server.service` i sprawdza lokalny endpoint `/scores`. Przy błędzie health checku przywracana jest poprzednia wersja źródła. Pliki danych w `/var/lib/chomicza` nie są kopiowane ani kasowane. Workflow można też uruchomić ręcznie z zakładki GitHub Actions.
 
 Na tym VPS publiczny klucz wdrożeniowy jest już dodany do konta `ubuntu`, a osobna reguła sudo pozwala mu restartować wyłącznie `game-server.service` (plik `/etc/sudoers.d/game-server-deploy`, zweryfikowany przez `visudo`). Przed pierwszym wdrożeniem dodaj w GitHub repository secret:
 
