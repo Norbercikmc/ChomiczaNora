@@ -1,1 +1,46 @@
-(function(){var d=document,e=d.createElement("div"),t,h=d.getElementById("l"),r=d.getElementById("r"),c=0,z=0,k="",m=["Auu! To bolało.","Chomik uciekł do nory.","Nora jest zajęta.","Nie klikaj tak mocno!","Maszynownia działa. Chyba.","Sprawdziłeś już lodówkę?","Chomik ma już dość klikania.","Brawo, odkryłeś sekret!"],q=["Zęby chomika rosną przez całe jego życie.","Chomiki są aktywne głównie nocą, jak serwery o 3:00.","Chomik w kole potrafi przebiec w nocy nawet kilka kilometrów.","Policzki chomika służą do noszenia zapasów jedzenia.","Chomiki mają kiepski wzrok, za to świetny węch.","Projekt Maszynownia działa na starych i nowych zestawach PC.","Minecraft: chomiczanora.pl, Teamspeak: ts.chomiczanora.pl","Wszystkie domowe chomiki syryjskie pochodzą od jednej rodziny z Syrii."],f=["😭","x_x","😢","😵",">_<","T_T","😖"];e.className="egg";e.setAttribute("role","status");e.setAttribute("aria-live","polite");d.body.appendChild(e);function p(x){e.textContent=x;e.classList.add("is-visible");clearTimeout(t);t=setTimeout(function(){e.classList.remove("is-visible")},6e3)}function n(a){return a[Math.floor(Math.random()*a.length)]}d.addEventListener("keydown",function(v){if(v.key.length!==1)return;k=(k+v.key.toLowerCase()).slice(-9);if(k!=="minecraft")return;k="";p("Serwer Minecraft: wersja 31")});h.addEventListener("click",function(){c++;h.classList.remove("is-shaking");r.classList.remove("is-on");void h.offsetWidth;h.classList.add("is-shaking");r.textContent=n(f);r.classList.add("is-on");if(Math.random()<.001){z++;p("Sekret #"+z+": "+q[(z-1)%q.length])}else if(Math.random()<.003)p(n(m))});h.addEventListener("animationend",function(){h.classList.remove("is-shaking")})})();
+(function () {
+  "use strict";
+
+  var d = document;
+  var hit = d.getElementById("l");
+  var toast = d.createElement("div");
+  var toastTimer;
+  var keyBuffer = "";
+  var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  toast.className = "egg";
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+  d.body.appendChild(toast);
+
+  function announce(text) {
+    toast.textContent = text;
+    toast.classList.add("is-visible");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toast.classList.remove("is-visible");
+    }, 6000);
+  }
+
+  d.addEventListener("keydown", function (event) {
+    if (event.key.length !== 1) return;
+    keyBuffer = (keyBuffer + event.key.toLowerCase()).slice(-9);
+    if (keyBuffer !== "minecraft") return;
+    keyBuffer = "";
+    announce("Serwer Minecraft: wersja 31");
+  });
+
+  if (!hit) return;
+  hit.addEventListener("click", function () {
+    // Gra ma własną animację i licznik kliknięć.
+    if (d.querySelector('script[src*="game.js"]')) return;
+    if (reducedMotion && reducedMotion.matches) return;
+    hit.classList.remove("is-tapped");
+    void hit.offsetWidth;
+    hit.classList.add("is-tapped");
+  });
+
+  hit.addEventListener("animationend", function (event) {
+    if (event.animationName === "halo") hit.classList.remove("is-tapped");
+  });
+})();
