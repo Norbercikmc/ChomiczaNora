@@ -209,8 +209,13 @@
   function eventClickMult() { return Date.now() < fx.clickUntil ? fx.click : 1; }
 
   var compact = new Intl.NumberFormat("pl-PL", { notation: "compact", maximumFractionDigits: 2 });
+  var fullNumber = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0, useGrouping: true });
   function fmt(n) {
     return n < 10000 ? Math.floor(n).toLocaleString("pl-PL") : compact.format(n);
+  }
+  function fmtFull(n) {
+    n = Number(n);
+    return isFinite(n) ? fullNumber.format(Math.floor(n)) : "0";
   }
 
   function load() {
@@ -272,6 +277,11 @@
     if (serverReady) return state.serverCps || 0;
     var sum = UPGRADES.reduce(function (a, u) { return a + (u.cps || 0) * count(u) * buildingMult(u); }, 0);
     return sum * globalMult() * eventCpsMult() * achMult() * seedMult();
+  }
+  function displayedNuts() {
+    if (!serverReady || d.hidden) return state.nuts;
+    var elapsed = Math.min(15, Math.max(0, (Date.now() - (state.serverUpdatedAt || Date.now())) / 1000));
+    return state.nuts + (state.serverCps || 0) * elapsed;
   }
   function clickParts() {
     return {
@@ -381,8 +391,6 @@
   var NICK_KEY = KEY + "-nick";
   var NICK_RE = /^[\p{L}\p{N} _.-]{2,16}$/u;
   var nick = "";
-  var lastSent = -1;
-  var lastGk = "";
   var view = null;
   try { nick = localStorage.getItem(NICK_KEY) || ""; } catch (e) { /* brak storage */ }
   if (!NICK_RE.test(nick)) nick = "";
@@ -393,6 +401,7 @@
     state.nuts = Number(s.nuts) || 0; state.total = Number(s.total) || 0;
     state.run = Number(s.run) || 0; state.seeds = Number(s.seeds) || 0;
     state.serverCps = Number(s.cps) || 0;
+    state.serverUpdatedAt = Date.now();
     state.lastMult = Number(s.lastMult) || 0; state.gamba.bets = Number(s.bets) || 0;
     state.lastEventResult = s.eventResult || "";
     state.owned = s.owned || {}; state.gamba.won = Number(s.won) || 0; state.gamba.lost = Number(s.lost) || 0;
@@ -471,25 +480,12 @@
         rows.slice(0, 25).forEach(function (row) {
           var li = el("li", "board__item");
           li.appendChild(el("span", "board__name", String(row.nick)));
-          li.appendChild(el("span", "board__score", fmt(Number(row.score))));
+          li.appendChild(el("span", "board__score", fmtFull(row.score)));
           boardList.appendChild(li);
         });
         boardMsg.textContent = rows.length ? "Zebrane orzeszki łącznie" : "Brak wyników — bądź pierwszy!";
       })
       .catch(function () { boardMsg.textContent = "Ranking jest teraz niedostępny."; });
-  }
-
-  function submitScore() {
-    var total = Math.floor(state.total);
-    var gw = Math.floor(state.gamba.won), gl = Math.floor(state.gamba.lost), gk = gw + ":" + gl;
-    if (stale || !nick || (total <= lastSent && gk === lastGk)) return;
-    lastSent = total;
-    lastGk = gk;
-    serverAction("nick", nick).then(function (ok) {
-      if (!ok) { lastSent = -1; saveMsg.textContent = "Nie udało się zapisać nicku."; return; }
-      saveMsg.textContent = "✔ Wynik zapisuje serwer (" + nick + ")";
-      if (view === "board") refreshBoard();
-    });
   }
 
   nickBtn.addEventListener("click", function () {
@@ -500,13 +496,15 @@
     }
     nick = v;
     try { localStorage.setItem(NICK_KEY, v); } catch (e) { /* brak storage */ }
-    lastSent = -1;
     saveMsg.textContent = "Zapisuję…";
-    serverAction("nick", v);
+    serverAction("nick", v).then(function (ok) {
+      if (!ok) { saveMsg.textContent = "Nick jest zajęty albo nie udało się zapisać."; return; }
+      saveMsg.textContent = "✔ Nick zapisany — wynik trafia do rankingu z serwera.";
+      if (view === "board") refreshBoard();
+    });
   });
 
-  setInterval(submitScore, 30000);
-  setInterval(function () { if (view === "board") refreshBoard(); }, 60000);
+  setInterval(function () { if (view === "board" && !d.hidden) refreshBoard(); }, 10000);
 
   // Gamba: tylko wirtualne orzeszki, wygrane nie liczą się do rankingu (state.total)
   var GAMES = [
@@ -588,7 +586,7 @@
     rows.forEach(function (row) {
       var li = el("li", "board__item");
       li.appendChild(el("span", "board__name", String(row.nick)));
-      li.appendChild(el("span", "board__score", sign + fmt(Number(row.amount) || 0)));
+      li.appendChild(el("span", "board__score", sign + fmtFull(row.amount)));
       ol.appendChild(li);
     });
   }
@@ -696,7 +694,7 @@
     b.appendChild(el("span", "up__count"));
     b.appendChild(el("span", "up__desc", g.desc));
     b.addEventListener("click", function () { play(g); });
-    gamble.appendChild(b);
+    gamble.insertBefore(b, gTopHead);
   });
 
   shop.appendChild(tabs);
@@ -802,6 +800,7 @@
   var passPanel = el("div", "shop__list");
   passPanel.id = "shop-pass";
   var passHead = el("p", "board__msg");
+  var passInfo = el("p", "board__msg", "XP zdobywasz za czas gry, klikanie, zakupy, ulepszenia, eventy i osiągnięcia.");
   var passBar = el("div", "pass__bar");
   var passFill = el("div", "pass__fill");
   passBar.appendChild(passFill);
@@ -809,6 +808,7 @@
   passClaim.type = "button";
   var passList = el("div", "once");
   passPanel.appendChild(passHead);
+  passPanel.appendChild(passInfo);
   passPanel.appendChild(passBar);
   passPanel.appendChild(passClaim);
   passPanel.appendChild(passList);
@@ -816,9 +816,9 @@
 
   function passLevel() { return Math.floor(state.pass.xp / PASS_XP); }
   function passReward(lv) {
-    if (lv % 10 === 0) return { icon: "🌱", text: "+1 złote nasiono", give: function () { state.seeds += 1; } };
-    if (lv % 5 === 0) return { icon: "✨", text: "Szał produkcji ×7 przez 60 s", give: function () { fx.cps = 7; fx.cpsUntil = Date.now() + 60000; } };
-    return { icon: ITEM, text: "Orzeszki za 5 min produkcji", give: function () { gain(Math.max(perSecond() * 300, perClick() * 100)); } };
+    if (lv % 10 === 0) return { icon: "🌱", text: "+1 nasiono: stały bonus do produkcji i kliknięć" };
+    if (lv % 5 === 0) return { icon: "✨", text: "Produkcja ×7 przez 60 s; kolejne boosty wydłużają czas" };
+    return { icon: ITEM, text: "Orzeszki: większa z nagród — 5 min produkcji lub 100 kliknięć" };
   }
 
   function renderPass() {
@@ -1048,7 +1048,7 @@
   }
 
   function render() {
-    var n = Math.floor(state.nuts);
+    var n = Math.floor(displayedNuts());
     scoreNum.textContent = fmt(n);
     var cps = perSecond();
     scoreRate.textContent = cps
@@ -1368,6 +1368,14 @@
   setInterval(function () {
     if (serverReady && !d.hidden && !actionBusy) syncServer();
   }, 5000);
+
+  // Płynny licznik między odpowiedziami API; przewidywana wartość nie zmienia stanu gry.
+  setInterval(function () {
+    if (!serverReady || d.hidden) return;
+    var n = Math.floor(displayedNuts());
+    scoreNum.textContent = fmt(n);
+    d.title = fmt(n) + " orzeszków — Chomicza Nora";
+  }, 100);
 
   setInterval(save, 5000);
   d.addEventListener("visibilitychange", function () {
