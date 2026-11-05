@@ -386,7 +386,7 @@
   try { nick = localStorage.getItem(NICK_KEY) || ""; } catch (e) { /* brak storage */ }
   if (!NICK_RE.test(nick)) nick = "";
 
-  var serverReady = false, actionBusy = false, pendingActions = 0, actionQueue = Promise.resolve(), lastServerEvent = 0, lastEventEffect = "";
+  var serverReady = false, actionBusy = false, pendingActions = 0, actionQueue = Promise.resolve(), lastServerEvent = 0, lastEventEffect = "", syncInFlight = false;
   function useServerState(s) {
     var oldLevel = passLevel();
     state.nuts = Number(s.nuts) || 0; state.total = Number(s.total) || 0;
@@ -430,9 +430,13 @@
     return task;
   }
   function syncServer() {
+    if (syncInFlight) return Promise.resolve();
+    syncInFlight = true;
     return fetch(GAME_API, { credentials: "include", cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(useServerState).catch(function () { announce("Nie można połączyć się z serwerem gry."); });
+      .then(useServerState)
+      .catch(function () { announce("Nie można połączyć się z serwerem gry."); })
+      .then(function () { syncInFlight = false; });
   }
   syncServer();
 
@@ -1357,25 +1361,19 @@
     }
   }
 
-  // Przyrost liczony z upływu czasu, bo przeglądarki spowalniają timery w kartach w tle
-  var lastTick = Date.now();
+  // Akcje zwracają stan od razu; polling rzadki jest tylko dla produkcji i eventów.
   setInterval(function () {
-    var t = Date.now();
-    var dt = Math.min(60, Math.max(0, (t - lastTick) / 1000));
-    lastTick = t;
-    if (serverReady && !actionBusy) syncServer();
-  }, 1000);
+    if (serverReady && !d.hidden && !actionBusy) syncServer();
+  }, 5000);
 
   setInterval(save, 5000);
-  d.addEventListener("visibilitychange", function () { if (d.hidden) save(); });
+  d.addEventListener("visibilitychange", function () {
+    if (d.hidden) save();
+    else syncServer();
+  });
   window.addEventListener("pagehide", save);
 
-  // Status Minecrafta dostarcza page.js (zdarzenie cn:mc)
-  function syncMc() {
-    syncServer();
-  }
-  d.addEventListener("cn:mc", syncMc);
-  syncMc();
+  // Serwer gry sam odpyta status Minecrafta; nie rób dodatkowego GET przy starcie.
   // Wykrywanie nowej wersji: index.html z serwera wskazuje aktualny ?v= dla page.js (= game.js)
   function remoteBuild() {
     return fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store" })
