@@ -15,6 +15,41 @@
   var MC_QUERY = "mc.chomiczanora.pl";
   var d = document;
 
+  // Logo porusza się nieregularnie, z krótką losową pauzą między ruchami.
+  var logo = d.querySelector(".logo");
+  var motionPreference = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+  if (logo && logo.animate && motionPreference) {
+    var logoMotion = null, logoMotionTimer = 0;
+    function animateLogo() {
+      if (motionPreference.matches) return;
+      var side = (Math.random() - 0.5) * 10;
+      var lift = 7 + Math.random() * 9;
+      var lean = (Math.random() - 0.5) * 3;
+      var duration = 1900 + Math.random() * 2600;
+      var pause = 350 + Math.random() * 2300;
+      var breath = 0.985 + Math.random() * 0.035;
+      logoMotion = logo.animate([
+        { transform: "translate(0, 0) rotate(0deg) scale(1)" },
+        { transform: "translate(" + side + "px, " + -lift + "px) rotate(" + lean + "deg) scale(" + breath + ")", offset: 0.34 },
+        { transform: "translate(" + (-side * 0.65) + "px, " + (-lift * 0.35) + "px) rotate(" + (-lean * 0.55) + "deg) scale(1.01)", offset: 0.68 },
+        { transform: "translate(0, 0) rotate(0deg) scale(1)" }
+      ], { duration: duration, easing: "ease-in-out" });
+      logoMotionTimer = setTimeout(animateLogo, duration + pause);
+    }
+    function updateLogoMotion(e) {
+      clearTimeout(logoMotionTimer);
+      if (logoMotion) logoMotion.cancel();
+      if (e && e.matches) logo.style.animation = "none";
+      else { logo.style.animation = "none"; animateLogo(); }
+    }
+    if (motionPreference.addEventListener) motionPreference.addEventListener("change", updateLogoMotion);
+    else if (motionPreference.addListener) motionPreference.addListener(updateLogoMotion);
+    if (!motionPreference.matches) {
+      logo.style.animation = "none";
+      animateLogo();
+    }
+  }
+
   // Strona jest jednoekranowa: bez tego przeglądarka po przeładowaniu przywraca przesunięcie widoku
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
