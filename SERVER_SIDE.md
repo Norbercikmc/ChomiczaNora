@@ -31,17 +31,10 @@ Kod wymaga wdrożenia razem z trasami reverse proxy i sekretem admina. Nie uruch
 
 Repozytorium zawiera workflow `.github/workflows/deploy-game-server.yml`. Po pushu zmian w `GameServer.java` na `main` workflow kompiluje kod, kopiuje tylko plik źródłowy do `/home/ubuntu/rankingwww`, restartuje `game-server.service` i sprawdza lokalny endpoint `/scores`. Przy błędzie health checku przywracana jest poprzednia wersja źródła. Pliki danych w `/var/lib/chomicza` nie są kopiowane ani kasowane.
 
-Przed pierwszym wdrożeniem skonfiguruj GitHub repository secrets:
+Na tym VPS publiczny klucz wdrożeniowy jest już dodany do konta `ubuntu`, a osobna reguła sudo pozwala mu restartować wyłącznie `game-server.service` (plik `/etc/sudoers.d/game-server-deploy`, zweryfikowany przez `visudo`). Przed pierwszym wdrożeniem dodaj w GitHub repository secret:
 
-- `VPS_SSH_KEY` — prywatny klucz wdrożeniowy (bez hasła), dodaj pasujący klucz publiczny do `/home/ubuntu/.ssh/authorized_keys` na VPS.
-- `VPS_KNOWN_HOSTS` — zaufany wpis hosta dla `51.83.186.233`, odczytany z `~/.ssh/known_hosts` po zweryfikowanym połączeniu SSH.
+- `VPS_SSH_KEY` — prywatną część klucza bez hasła, którego publiczna część ma fingerprint `SHA256:UW9lI4AopTpddH6nMUIU/OnFvR7EzghzmYYeyWvXqrw`. Wklej ją bezpośrednio w GitHub Settings → Secrets and variables → Actions; nie commituj jej ani nie wysyłaj przez czat. Host key serwera jest przypięty w workflow (ED25519 SHA256: `4QqtMKKwK408VgvcmPBFQwrYQTLwzieYFYS79+CFBcE`).
 
-Utwórz osobny klucz wdrożeniowy na swoim komputerze poleceniem `ssh-keygen -t ed25519 -C github-actions-chomiczanora -f ~/.ssh/chomiczanora-actions` i zostaw passphrase pusty. Prywatną część zapisz bezpośrednio w GitHub Actions secret `VPS_SSH_KEY`; nie commituj jej i nie wklejaj do czatu. Publiczną część dodaj na VPS do `~/.ssh/authorized_keys`.
-
-Użytkownik `ubuntu` musi móc bez hasła zrestartować wyłącznie tę usługę. Na VPS skonfiguruj tę regułę przez `sudo visudo -f /etc/sudoers.d/game-server-deploy`:
-
-```sudoers
-ubuntu ALL=(root) NOPASSWD: /usr/bin/systemctl restart game-server.service
-```
+Host key serwera jest przypięty bezpośrednio w workflow; nie wymaga osobnego secreta.
 
 Workflow nie wdraża `Leaderboard.java`, nie zmienia konfiguracji proxy ani nie importuje danych sezonu 1. Zmiany w innych plikach repozytorium nie restartują serwera gry.
