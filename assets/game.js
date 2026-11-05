@@ -132,7 +132,7 @@
   var rows = {};
 
   // Eventy: chwilowe bonusy, awaria, gracze MC i sezon
-  var fx = { cps: 1, cpsUntil: 0, click: 1, clickUntil: 0, outage: false };
+  var fx = { cps: 1, cpsUntil: 0, passCpsUntil: 0, click: 1, clickUntil: 0, outage: false };
   var mcPlayers = 0;
   var BIRTHDAY = null; // dzień urodzin projektu jako "MM-DD", np. "05-17"
 
@@ -201,6 +201,7 @@
   function mcBonus() { return 1 + 0.05 * Math.min(mcPlayers, 10); }
   function eventCpsMult() {
     var m = Date.now() < fx.cpsUntil ? fx.cps : 1;
+    if (Date.now() < fx.passCpsUntil) m *= 7;
     if (fx.outage) m *= 0.5;
     if (SEASON) m *= SEASON.cps;
     return m * mcBonus();
@@ -399,6 +400,7 @@
     state.ach = {}; (s.ach || []).forEach(function (id) { state.ach[id] = true; });
     state.stats = s.stats || {};
     state.pass = { id: s.passId || passId(), xp: Number(s.passXp) || 0, claimed: Number(s.passClaimed) || 0 };
+    fx.passCpsUntil = Number(s.passBoostUntil) || 0;
     mcPlayers = Number(s.mcPlayers) || 0;
     fx.outage = s.event === "outage";
     if (s.cpsUntil > Date.now()) { fx.cps = Number(s.eventCps) || 1; fx.cpsUntil = Number(s.cpsUntil); }
@@ -883,13 +885,13 @@
     function line(dl, k, v) { dl.appendChild(el("dt", "", k)); dl.appendChild(el("dd", "", v)); }
 
     var dl = section("Mnożniki produkcji");
-    var fxm = Date.now() < fx.cpsUntil ? fx.cps : 1;
+    var fxm = (Date.now() < fx.cpsUntil ? fx.cps : 1) * (Date.now() < fx.passCpsUntil ? 7 : 1);
     line(dl, "Ulepszenia globalne", mx(globalMult()));
     line(dl, "Osiągnięcia (" + Object.keys(state.ach).length + ")", mx(achMult()));
     line(dl, "Złote nasiona (" + state.seeds + ")", mx(seedMult()));
     line(dl, "Gracze MC (" + mcPlayers + ")", mx(mcBonus()));
     line(dl, "Sezon", SEASON ? mx(SEASON.cps) : "—");
-    line(dl, "Szał z eventu", fxm > 1 ? mx(fxm) : "—");
+    line(dl, "Czasowe boosty", fxm > 1 ? mx(fxm) : "—");
     line(dl, "Awaria", fx.outage ? "×0,5" : "—");
     line(dl, "Razem", mx(gm));
     line(dl, "Produkcja", rate(cps) + "/s");
@@ -1056,6 +1058,7 @@
 
     var t = Date.now(), parts = [];
     if (t < fx.cpsUntil) parts.push("✨ ×" + fx.cps + " produkcji (" + Math.ceil((fx.cpsUntil - t) / 1000) + " s)");
+    if (t < fx.passCpsUntil) parts.push("🎟️ ×7 produkcji (" + Math.ceil((fx.passCpsUntil - t) / 1000) + " s)");
     if (t < fx.clickUntil) parts.push("✨ ×" + fx.click + " za klik (" + Math.ceil((fx.clickUntil - t) / 1000) + " s)");
     if (fx.outage) parts.push("⚠️ awaria −50%");
     if (mcPlayers) parts.push("⛏️ +" + Math.round((mcBonus() - 1) * 100) + "% (gracze MC)");
@@ -1456,18 +1459,7 @@
   });
   wakePanel();
 
-  // Zysk z nieobecności: 25% produkcji, maks. 2 godziny
-  var away = state.last ? Math.min(2 * 3600, (Date.now() - state.last) / 1000) : 0;
-  if (away > 60) {
-    var earned = perSecond() * away * 0.25;
-    if (earned >= 1) {
-      earn(earned);
-      var h = Math.floor(away / 3600), m = Math.floor(away % 3600 / 60);
-      setTimeout(function () {
-        announce("💤 Przez " + (h ? h + " h " : "") + m + " min chomiki zebrały +" + fmt(earned) + " " + ITEM);
-      }, 3000);
-    }
-  }
+  // Produkcję podczas nieobecności nalicza wyłącznie GameServer.
   save();
 
   render();
